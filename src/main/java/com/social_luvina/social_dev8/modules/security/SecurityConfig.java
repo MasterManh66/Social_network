@@ -8,27 +8,41 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 // import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.social_luvina.social_dev8.helpers.JwtAuthFilter;
+import lombok.RequiredArgsConstructor;
 
-
+@RequiredArgsConstructor
 @Configuration
 public class SecurityConfig {
+
+
+    private final JwtAuthFilter jwtAuthFilter;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       http
-          .authorizeHttpRequests(auth -> auth
-              .requestMatchers(
+            .authorizeHttpRequests(auth -> auth
+                //1. Router Auth No Jwt
+                .requestMatchers(
                   "/social/auth/login",
+                  "/social/auth/register",
+                  "/social/auth/me",
                   "/v3/api-docs/**",
                   "/swagger-ui/**",   
                   "/swagger-ui/index.html",
                   "/swagger-ui.html"
-              ).permitAll()
-              .anyRequest().authenticated()
+                ).permitAll()
+
+                //2. Router Public 
+                .requestMatchers(
+                    "/social/auth/admin"
+                ).permitAll()
+                .anyRequest().authenticated()
           )
-          .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+          .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
           .csrf(csrf -> csrf.disable()) 
-          .httpBasic(withDefaults());
+          .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
       return http.build();
   }

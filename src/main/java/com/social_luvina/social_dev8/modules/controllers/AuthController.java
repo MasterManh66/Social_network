@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
-import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
+// import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInterface;
 
@@ -41,15 +41,15 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Network Error!");
   }
 
-  @PostMapping("register")
-  public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-      try {
-          Object result = userService.registerUser(request);
-          return ResponseEntity.ok(result);
-      } catch (Exception e) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Đăng ký thất bại: " + e.getMessage());
-      }
-  }
+  // @PostMapping("register")
+  // public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+  //     try {
+  //         Object result = userService.registerUser(request);
+  //         return ResponseEntity.ok(result);
+  //     } catch (Exception e) {
+  //         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed: " + e.getMessage());
+  //     }
+  // }
   
   
 }

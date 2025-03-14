@@ -1,17 +1,17 @@
 package com.social_luvina.social_dev8.modules.services.impl;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
-import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
+// import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserDTO;
 import com.social_luvina.social_dev8.modules.models.entities.User;
-import com.social_luvina.social_dev8.modules.models.entities.Role;
+// import com.social_luvina.social_dev8.modules.models.entities.Role;
 import com.social_luvina.social_dev8.modules.repositories.UserRepository;
-import com.social_luvina.social_dev8.modules.repositories.RoleRepository;
+// import com.social_luvina.social_dev8.modules.repositories.RoleRepository;
 import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInterface;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+// import java.util.ArrayList;
+// import java.util.Collections;
+// import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -33,8 +33,8 @@ public class UserService implements UserServiceInterface {
   @Autowired
   private UserRepository userRepository;
 
-  @Autowired
-  private RoleRepository roleRepository;
+  // @Autowired
+  // private RoleRepository roleRepository;
 
   @Override
   public Object authenticate(LoginRequest request){
@@ -62,24 +62,24 @@ public class UserService implements UserServiceInterface {
     }
   } 
 
-  @Override 
-  public Object registerUser(RegisterRequest request){
-    if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-      throw new RuntimeException("Email already registered!");
-    }
+  // @Override 
+  // public Object registerUser(RegisterRequest request){
+  //   if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+  //     throw new RuntimeException("Email already registered!");
+  //   }
 
-    Role userRole = roleRepository.findByRoleName("User").orElseThrow(() -> new RuntimeException("Role USER not found!"));
-    List<Role> role = new ArrayList<>(Collections.singletonList(userRole));
+  //   Role userRole = roleRepository.findByRoleName("User").orElseThrow(() -> new RuntimeException("Role USER not found!"));
+  //   List<Role> role = new ArrayList<>(Collections.singletonList(userRole));
 
-    User newUser = User.builder()
-        .email(request.getEmail())
-        .password(request.getPassword())
-        .roles(role)
-        .build();
+  //   User newUser = User.builder()
+  //       .email(request.getEmail())
+  //       .password(request.getPassword())
+  //       .roles(role)
+  //       .build();
 
-    userRepository.save(newUser);
+  //   userRepository.save(newUser);
 
-    return "User registered successfully!";
-  }
+  //   return "User registered successfully!";
+  // }
 
 }
