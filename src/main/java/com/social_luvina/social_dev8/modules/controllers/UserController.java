@@ -9,6 +9,7 @@ import com.social_luvina.social_dev8.modules.models.dto.response.UserDTO;
 import com.social_luvina.social_dev8.modules.models.entities.User;
 import com.social_luvina.social_dev8.modules.repositories.UserRepository;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 
@@ -21,12 +22,17 @@ public class UserController {
 
   @GetMapping("/me")
   public ResponseEntity<?> me(){
-    String email = "test@gmail.com";
+    // String email = "test@gmail.com";
+    String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
     User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User does not exist!"));
 
-    UserDTO userDto = new UserDTO(user.getId(), user.getEmail(), user.getPassword());
-
+    UserDTO userDto = UserDTO.builder()
+      .id(user.getId())
+      .email(user.getEmail())
+      .build();
+    
+    // SuccessResource<UserDTO> response = new SuccessResource<>("SUCCESS", userDto);
     return ResponseEntity.ok(userDto);
   }
 }

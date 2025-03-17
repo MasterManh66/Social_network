@@ -18,12 +18,4 @@ public class LoginRequest {
 
   @NotBlank(message = "Password is not empty")
   private String password;
-
-  public String getEmail(){
-    return email;
-  }
-
-  public String password(){
-    return password;
-  }
 }

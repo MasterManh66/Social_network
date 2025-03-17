@@ -7,7 +7,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 // import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 // import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import static org.springframework.security.config.Customizer.withDefaults;
+// import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.social_luvina.social_dev8.helpers.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
@@ -26,17 +26,12 @@ public class SecurityConfig {
                 //1. Router Auth No Jwt
                 .requestMatchers(
                   "/social/auth/login",
-                  "/social/auth/register",
-                  "/social/auth/me",
+                  // "/social/auth/register",
+                  // "/social/auth/me",
                   "/v3/api-docs/**",
                   "/swagger-ui/**",   
                   "/swagger-ui/index.html",
                   "/swagger-ui.html"
-                ).permitAll()
-
-                //2. Router Public 
-                .requestMatchers(
-                    "/social/auth/admin"
                 ).permitAll()
                 .anyRequest().authenticated()
           )

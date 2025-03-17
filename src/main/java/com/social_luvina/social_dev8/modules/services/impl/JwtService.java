@@ -6,14 +6,13 @@ import java.security.Key;
 import java.util.Base64;
 
 import com.social_luvina.social_dev8.config.JwtConfig;
-
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 
 @Service
 public class JwtService {
@@ -41,95 +40,54 @@ public class JwtService {
           .compact();
     }
 
-    // public String extractUsername(String token){
-    //   return extractClaim(token, Claims::getSubject);
-    // }
-
-    // private <T> T extractClaim(String token, java.util.function.Function<Claims, T> claimsResolver) {
-    //   final Claims claims = extractAllClaims(token);
-    //   return claimsResolver.apply(claims);
-    // }
-
-    // private Claims extractAllClaims(String token) {
-    //   return Jwts.parserBuilder()
-    //           .setSigningKey(key)
-    //           .build()
-    //           .parseClaimsJws(token)
-    //           .getBody();
-    // }
-
     public String getUserIdFromJwt(String token){
       Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
       return claims.getSubject();
     }
 
-    /*
-      1. Token có dung dang kong
-      2. Chữ ký của token có dung kong
-      3. check xem token đã hết hạn
-      4. user_id của token với cái userDetails
-      5. check xem token có page blacklist hay kong
-      6. check role
-     */
-
-    public boolean isValidToken(String token, UserDetails userDetails) {
-
-      try {
-
-        //1 check dang
-        if(!isTokenFormatValid(token)){ 
-          return false;
-        }
-
-        //2
-        if(!isSignatureValid(token)){ 
-          return false;
-        }
-
-        //3
-        if(!isTokenExpired(token)){ 
-          return false;
-        }
-        
-      } catch (Exception e) {
-        return false;
-      }
-
-      return false;
+    public String getEmailFromJwt(String token){ 
+      Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+      return claims.get("email", String.class);
     }
 
-    private boolean isTokenFormatValid(String token){ 
+    public boolean isTokenFormatValid(String token){ 
       try {
         String[] tokenParts = token.split("\\.");
         return tokenParts.length == 3;
-      } catch (Exception e) {
+      } catch (SignatureException e) {
         return false;
       }
     }
 
-    private boolean isSignatureValid(String token){ 
+    public boolean isSignatureValid(String token){ 
       try {
         
         Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
 
         return true;
-      } catch (Exception e) {
+
+      } catch (SignatureException e) {
         return false;
       }
     }
 
-    private Key getSigningKey(){ 
+    public Key getSigningKey(){ 
       byte[] keyBytes = jwtConfig.getSecretKey().getBytes();
-      return Keys.hmacShaKeyFor(keyBytes);
+      return Keys.hmacShaKeyFor(Base64.getEncoder().encode(keyBytes));
     }
 
-    private boolean isTokenExpired(String token){ 
-      final Date expiration = getClaimFromToken(token, Claims::getExpiration);
-      return expiration.before(new Date());
+    public boolean isTokenExpired(String token){ 
+
+      try {
+        final Date expiration = getClaimFromToken(token, Claims::getExpiration);
+        return expiration.after(new Date());
+      } catch (SignatureException e) {
+        return false;
+      }
     }
 
-    private Claims getAllClaimsFromToken(String token){ 
+    public Claims getAllClaimsFromToken(String token){ 
       return Jwts.parserBuilder()
               .setSigningKey(getSigningKey())
               .build()
@@ -137,8 +95,9 @@ public class JwtService {
               .getBody();
     }
 
-    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) { 
+    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) { 
       final Claims claims = getAllClaimsFromToken(token);
       return claimsResolver.apply(claims);
     }
+
 }
