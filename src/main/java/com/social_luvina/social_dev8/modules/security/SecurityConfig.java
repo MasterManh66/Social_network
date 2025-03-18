@@ -27,6 +27,8 @@ public class SecurityConfig {
             .requestMatchers(
                   "/social/auth/login",
                   "/social/auth/register",
+                  "/social/auth/forgetpassword",
+                  "/social/auth/change_password",
                   "/v3/api-docs/**",
                   "/swagger-ui/**",
                   "/swagger-ui/index.html",

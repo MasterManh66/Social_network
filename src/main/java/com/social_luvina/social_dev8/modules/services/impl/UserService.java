@@ -1,4 +1,5 @@
 package com.social_luvina.social_dev8.modules.services.impl;
+import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
@@ -46,10 +47,6 @@ public class UserService implements UserServiceInterface {
       if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
         throw new BadCredentialsException("Email or Password wrong!");
       }
-
-      // if (!request.getPassword().equals(user.getPassword())) {
-      //   throw new BadCredentialsException("Email or Password wrong!");
-      // }
 
       UserDTO userDto = new UserDTO(user.getId(),user.getEmail(),user.getPassword());
       String token = jwtService.generateToken(user.getId(), user.getEmail());
@@ -99,6 +96,47 @@ public class UserService implements UserServiceInterface {
             .data(newUser)
             .build()
     );
-}
+  }
+
+  @Override
+  public ResponseEntity<ApiResponse> forgetPassword(ForgetPasswordRequest request) { 
+    User user = userRepository.findByEmail(request.getEmail())
+              .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
+
+      String token = jwtService.generateToken(user.getId(), user.getEmail()); 
+      String resetLink = "http://localhost:3000/social/auth/change_password?token=" + token;
+
+      return ResponseEntity.ok(
+          ApiResponse.builder()
+          .status(HttpStatus.OK.value())
+          .message("Quên mật khẩu Thành công! Mở link dưới và thay đổi mật khẩu.")
+          .data(resetLink)
+          .build()
+      );
+  }
+
+  @Override
+  public ResponseEntity<ApiResponse> changePassword(ForgetPasswordRequest request) { 
+
+      String emailFromToken = jwtService.extractEmail(request.getToken());
+      
+      if (emailFromToken == null || !emailFromToken.equals(request.getEmail())) {
+        throw new BadCredentialsException("Token không hợp lệ hoặc không khớp với email");
+      }
+
+      User user = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
+
+      user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+      userRepository.save(user);
+
+      return ResponseEntity.ok(
+          ApiResponse.builder()
+          .status(HttpStatus.OK.value())
+          .message("Đổi mật khẩu thành công! Hãy đăng nhập lại.")
+          .build()
+      );
+  }
 
 }

@@ -18,10 +18,13 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse {
   @Builder.Default
-    private int status = HttpStatus.OK.value();
-    private String message = "success";
-    private Object data;
+  private int status = HttpStatus.OK.value();
 
-    @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
+  @Builder.Default
+  private String message = "success";
+    
+  private Object data;
+
+  @Builder.Default
+  private LocalDateTime timestamp = LocalDateTime.now();
 }

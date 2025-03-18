@@ -42,7 +42,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @NonNull HttpServletRequest request
   ){ 
     String path = request.getRequestURI();
-    return path.startsWith("/social/auth/login") || path.startsWith("/social/auth/register");
+    return path.startsWith("/social/auth/login") || path.startsWith("/social/auth/register")
+    || path.startsWith("/social/auth/forgetpassword") || path.startsWith("/social/auth/change_password");
   }
 
   @Override

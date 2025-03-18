@@ -100,4 +100,8 @@ public class JwtService {
       return claimsResolver.apply(claims);
     }
 
+    public String extractEmail(String token) {
+      return getClaimFromToken(token, claims -> claims.get("email", String.class));
+    }
+
 }
