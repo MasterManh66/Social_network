@@ -42,7 +42,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @NonNull HttpServletRequest request
   ){ 
     String path = request.getRequestURI();
-    return path.startsWith("/social/auth/login");
+    return path.startsWith("/social/auth/login") || path.startsWith("/social/auth/register");
   }
 
   @Override
@@ -61,7 +61,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         sendErrorResponse(response,request,
           HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Xác thực không thành công",
-          "Không tìm thấy token"
+          "Không tìm thấy token."
         );
 
         // logger.error("Error: token missing");
@@ -76,7 +76,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         sendErrorResponse(response,request,
           HttpServletResponse.SC_UNAUTHORIZED,
           "Xác thực không thành công",
-          "Token không đúng định dạng"
+          "Token không đúng định dạng."
         );
         return;
       }
@@ -85,7 +85,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         sendErrorResponse(response,request,
           HttpServletResponse.SC_UNAUTHORIZED,
           "Xác thực không thành công",
-          "Chữ ký không hợp lệ"
+          "Chữ ký không hợp lệ."
         );
         return;
       }
@@ -94,7 +94,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         sendErrorResponse(response,request,
           HttpServletResponse.SC_UNAUTHORIZED,
           "Xác thực không thành công",
-          "Token đã hết hạn"
+          "Token đã hết hạn."
         );
         return;
       }
@@ -102,6 +102,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       userId = jwtService.getUserIdFromJwt(jwt);
       if(userId != null && SecurityContextHolder.getContext().getAuthentication() == null){
         UserDetails userDetails = customUserDetailService.loadUserByUsername(userId);
+
+        final String emailFromToken = jwtService.getEmailFromJwt(jwt);
+        if(!emailFromToken.equals(userDetails.getUsername())){ 
+          sendErrorResponse(response, request,
+           HttpServletResponse.SC_UNAUTHORIZED,
+            "Xác thực không thành công",
+            "User Token không chính xác."
+          );
+          return;
+        }
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
           userDetails,
@@ -119,8 +129,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       }
 
       filterChain.doFilter(request, response);
-    } catch (Exception e) {
-      // TODO: handle exception
+    } catch (ServletException | IOException e) {
+      sendErrorResponse(response, request,
+           HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Network Error!",
+            e.getMessage()
+          );
     }
   }
 

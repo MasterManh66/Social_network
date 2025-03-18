@@ -2,6 +2,8 @@ package com.social_luvina.social_dev8.modules.models.entities;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +25,7 @@ public class Role {
     @Column(name = "role_name",nullable = false)
     private String roleName;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "roleId"),inverseJoinColumns = @JoinColumn(name = "userId"))
     private List<User> users;

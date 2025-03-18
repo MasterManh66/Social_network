@@ -1,5 +1,6 @@
 package com.social_luvina.social_dev8.modules.models.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 // send
 @Data
+@Valid
 @AllArgsConstructor
 @NoArgsConstructor
 public class LoginRequest {

@@ -27,19 +27,10 @@ public class User {
   @Column(name = "password",nullable = false)
   private String password;
 
+  @Column(name = "isActive",nullable = false)
+  private boolean isActive;
+
   @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
   @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "userId"),inverseJoinColumns = @JoinColumn(name = "roleId"))
   private List<Role> roles;
-
-  public long getId() {
-    return id;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public String getPassword() {
-    return password;
-  }
 }

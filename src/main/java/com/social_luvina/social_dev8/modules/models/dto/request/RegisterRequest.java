@@ -1,5 +1,6 @@
 package com.social_luvina.social_dev8.modules.models.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 // import jakarta.validation.constraints.Pattern;
@@ -9,26 +10,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Valid
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
-  @NotBlank(message = "Email is not empty")
-  @Email(message = "Email is not in the correct format")
-  @Size(max = 30, message = "Email must not exceed 30 characters")
+  @NotBlank(message = "Email không được để trống")
+  @Email(message = "Email không hợp lệ")
   private String email;
 
-  @NotBlank(message = "Password is not empty")
-  // @Pattern(
-  //   regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
-  //   message = "Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).")
-  // @Size(max = 20, message = "Password must not exceed 20 characters")
+  @NotBlank(message = "Mật khẩu không được để trống")
+  @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
   private String password;
-
-  public String getEmail(){
-    return email;
-  }
-
-  public String password(){
-    return password;
-  }
 }
