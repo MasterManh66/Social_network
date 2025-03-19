@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import com.social_luvina.social_dev8.modules.models.dto.response.ErrorResource;
 
 @ControllerAdvice
 public class GlobalException {
@@ -21,8 +22,8 @@ public class GlobalException {
       String errorMessage = error.getDefaultMessage();
       errors.put(fieldName, errorMessage);
     });
-
-    return new ResponseEntity<>(errors, HttpStatus.UNPROCESSABLE_ENTITY);
+    ErrorResource errorResource = new ErrorResource("Có vấn đề xảy ra trong quá trình xử lý", errors);
+    return new ResponseEntity<>(errorResource, HttpStatus.UNPROCESSABLE_ENTITY);
 
   }
 }

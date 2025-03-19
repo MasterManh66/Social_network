@@ -3,6 +3,7 @@ import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRe
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.ErrorResource;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserDTO;
 import com.social_luvina.social_dev8.modules.models.entities.Role;
@@ -13,6 +14,8 @@ import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInte
 
 import lombok.RequiredArgsConstructor;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,10 +45,10 @@ public class UserService implements UserServiceInterface {
     
     try {
 
-      User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new BadCredentialsException("Email or Password wrong!"));
+      User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new BadCredentialsException("Email không chính xác!"));
 
       if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-        throw new BadCredentialsException("Email or Password wrong!");
+        throw new BadCredentialsException("Password không chính xác!");
       }
 
       UserDTO userDto = new UserDTO(user.getId(),user.getEmail(),user.getPassword());
@@ -54,8 +57,11 @@ public class UserService implements UserServiceInterface {
       return new LoginResponse(token, userDto);
 
     } catch (BadCredentialsException e) {
-      throw new BadCredentialsException("Something wrong!");
-
+      // throw new BadCredentialsException("Something wrong!");
+      Map<String, String> errors = new HashMap<>();
+      errors.put("message", e.getMessage());
+      ErrorResource errorResource = new ErrorResource("Có vấn đề xảy ra trong quá trình xác thực", errors);
+      return errorResource;
     }
   } 
 
@@ -83,8 +89,12 @@ public class UserService implements UserServiceInterface {
         .isActive(false)
         .build();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
-      throw e;
+      return ResponseEntity.ok(
+        ApiResponse.builder()
+            .status(HttpStatus.OK.value())
+            .message("Đăng ký không thành công thành công!" +e.getMessage())
+            .build()
+      );
     }
 
     userRepository.save(newUser);
@@ -92,7 +102,7 @@ public class UserService implements UserServiceInterface {
     return ResponseEntity.ok(
         ApiResponse.builder()
             .status(HttpStatus.OK.value())
-            .message("Đăng ký thành công!")
+            .message("Đăng ký tài khoản thành công!")
             .data(newUser)
             .build()
     );
@@ -104,7 +114,7 @@ public class UserService implements UserServiceInterface {
               .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
 
       String token = jwtService.generateToken(user.getId(), user.getEmail()); 
-      String resetLink = "http://localhost:3000/social/auth/change_password?token=" + token;
+      String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
 
       return ResponseEntity.ok(
           ApiResponse.builder()
@@ -118,6 +128,7 @@ public class UserService implements UserServiceInterface {
   @Override
   public ResponseEntity<ApiResponse> changePassword(ForgetPasswordRequest request) { 
 
+    try {
       String emailFromToken = jwtService.extractEmail(request.getToken());
       
       if (emailFromToken == null || !emailFromToken.equals(request.getEmail())) {
@@ -137,6 +148,14 @@ public class UserService implements UserServiceInterface {
           .message("Đổi mật khẩu thành công! Hãy đăng nhập lại.")
           .build()
       );
+    } catch (BadCredentialsException e) {
+      return ResponseEntity.ok(
+        ApiResponse.builder()
+        .status(HttpStatus.UNAUTHORIZED.value())
+        .message(e.getMessage())
+        .build()
+      );
+    }
   }
 
 }

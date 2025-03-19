@@ -7,6 +7,7 @@ import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRe
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.ErrorResource;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 // import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInterface;
@@ -47,6 +48,10 @@ public class AuthController {
 
     if(result instanceof LoginResponse loginResponse){
       return ResponseEntity.ok(loginResponse);
+    }
+
+    if(result instanceof ErrorResource errorResource){ 
+      return ResponseEntity.unprocessableEntity().body(errorResource);
     }
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Network Error!");
