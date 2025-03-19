@@ -22,7 +22,6 @@ public class UserController {
 
   @GetMapping("/me")
   public ResponseEntity<?> me(){
-    // String email = "test@gmail.com";
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
     User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User does not exist!"));

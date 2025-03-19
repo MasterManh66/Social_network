@@ -2,6 +2,7 @@ package com.social_luvina.social_dev8.modules.services.impl;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ErrorResource;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
@@ -154,6 +155,40 @@ public class UserService implements UserServiceInterface {
         .status(HttpStatus.UNAUTHORIZED.value())
         .message(e.getMessage())
         .build()
+      );
+    }
+  }
+
+  @Override
+  public ResponseEntity<ApiResponse> updateProfile(UserRequest request, String token){ 
+    try {
+      String email = jwtService.extractEmail(token.replace("Bearer ", ""));
+      User user = userRepository.findByEmail(email)
+          .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+      
+      user.setFirstName(request.getFirstName());
+      user.setLastName(request.getLastName());
+      // user.setDateOfBirth(request.getDateOfBirth());
+      user.setAddress(request.getAddress());
+      user.setJob(request.getJob());
+      user.setGender(request.getGender());
+
+      userRepository.save(user);
+
+      return ResponseEntity.ok(
+          ApiResponse.builder()
+          .status(HttpStatus.OK.value())
+          .message("Cập nhật thông tin thành công!")
+          .data(user)
+          .build()
+      );
+
+    } catch (Exception e) {
+      return ResponseEntity.ok(
+            ApiResponse.builder()
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .message("Có lỗi xảy ra khi cập nhật hồ sơ: " + e.getMessage())
+            .build()
       );
     }
   }

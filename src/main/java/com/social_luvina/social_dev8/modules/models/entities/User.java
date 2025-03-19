@@ -1,6 +1,9 @@
 package com.social_luvina.social_dev8.modules.models.entities;
 
 import java.util.List;
+import java.sql.Date;
+
+import com.social_luvina.social_dev8.modules.models.enums.GenderEnum;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,6 +23,29 @@ public class User {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "user_id")
   private long id;
+
+  @Column(name = "first_name",nullable = false)
+  private String firstName;
+
+  @Column(name = "last_name",nullable = false)
+  private String lastName;
+
+  @Column(name = "address")
+  private String address;
+
+  @Column(name = "date_of_birth")
+  private Date dateOfBirth;
+
+  @Column(name = "job")
+  private String job;
+
+  @Column(name = "gender",nullable = false)
+  @Enumerated(EnumType.STRING)
+  private GenderEnum gender;
+
+  @Lob
+  @Column(name = "avatar",columnDefinition = "TEXT")
+  private String avatar;
   
   @Column(name = "email",unique = true,nullable = false)
   private String email;
