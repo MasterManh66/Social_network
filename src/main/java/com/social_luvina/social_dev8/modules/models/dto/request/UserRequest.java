@@ -26,7 +26,7 @@ public class UserRequest {
 
   private GenderEnum gender;
 
-  // @NotNull(message = "Date of birth cannot be null")
+  @NotNull(message = "Date of birth cannot be null")
   @Pattern(regexp = "^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\\d{2}$",message = "Date is not format dd/MM/yyyy")
   private String dateOfBirth;
 

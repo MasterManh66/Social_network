@@ -3,22 +3,14 @@ package com.social_luvina.social_dev8.modules.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
-import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
-import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
-import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ErrorResource;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
-// import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInterface;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-// import org.springframework.web.bind.annotation.RequestHeader;
-// import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -76,28 +68,4 @@ public class AuthController {
   //     return entity;
   // }
   
-  
-
-  @PostMapping("/register")
-  public ResponseEntity<ApiResponse> register(@Valid @RequestBody RegisterRequest request) {
-    return userService.registerUser(request);
-  }  
-
-  @PostMapping("/forgetpassword")
-  public ResponseEntity<ApiResponse> forgetPassword(@Valid @RequestBody ForgetPasswordRequest request) {
-    return userService.forgetPassword(request);
-  }
-
-  @PutMapping("/change_password")
-  public ResponseEntity<ApiResponse> changePassword(@Valid @RequestBody ForgetPasswordRequest request) {
-      return userService.changePassword(request);
-  }
-
-  @PutMapping("/profile")
-  public ResponseEntity<ApiResponse> updateProfile(
-    @Valid @RequestBody UserRequest request,  String token){ 
-
-    ResponseEntity<ApiResponse> response = userService.updateProfile(request, token);
-    return response;
-  }
 }

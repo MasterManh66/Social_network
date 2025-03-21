@@ -2,20 +2,27 @@ package com.social_luvina.social_dev8.modules.services.impl;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
+// import com.social_luvina.social_dev8.modules.models.dto.request.UploadImageRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ErrorResource;
+import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserDTO;
+import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 import com.social_luvina.social_dev8.modules.models.entities.Role;
 import com.social_luvina.social_dev8.modules.models.entities.User;
 import com.social_luvina.social_dev8.modules.repositories.UserRepository;
 import com.social_luvina.social_dev8.modules.repositories.RoleRepository;
 import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInterface;
+import com.social_luvina.social_dev8.modules.utils.ConvertStringToDate;
 
 import lombok.RequiredArgsConstructor;
+
+// import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+// import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -29,6 +36,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+// import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
@@ -40,6 +48,7 @@ public class UserService implements UserServiceInterface {
   private final PasswordEncoder passwordEncoder;
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
+  // private final ImageService imageService;
 
   @Override
   public Object authenticate(LoginRequest request){
@@ -67,10 +76,10 @@ public class UserService implements UserServiceInterface {
   } 
 
   @Override
-  public ResponseEntity<ApiResponse> registerUser(RegisterRequest request) {
+  public ResponseEntity<ApiResponse<Void>> registerUser(RegisterRequest request) {
     if (userRepository.findByEmail(request.getEmail()).isPresent()) {
       return ResponseEntity.badRequest().body(
-        ApiResponse.builder()
+        ApiResponse.<Void>builder()
             .status(HttpStatus.BAD_REQUEST.value())
             .message("Email đã tồn tại!")
             .build()
@@ -91,7 +100,7 @@ public class UserService implements UserServiceInterface {
         .build();
     } catch (Exception e) {
       return ResponseEntity.ok(
-        ApiResponse.builder()
+        ApiResponse.<Void>builder()
             .status(HttpStatus.OK.value())
             .message("Đăng ký không thành công thành công!" +e.getMessage())
             .build()
@@ -101,16 +110,16 @@ public class UserService implements UserServiceInterface {
     userRepository.save(newUser);
 
     return ResponseEntity.ok(
-        ApiResponse.builder()
+        ApiResponse.<Void>builder()
             .status(HttpStatus.OK.value())
             .message("Đăng ký tài khoản thành công!")
-            .data(newUser)
+            // .data(newUser)
             .build()
     );
   }
 
   @Override
-  public ResponseEntity<ApiResponse> forgetPassword(ForgetPasswordRequest request) { 
+  public ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(ForgetPasswordRequest request) { 
     User user = userRepository.findByEmail(request.getEmail())
               .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
 
@@ -118,16 +127,16 @@ public class UserService implements UserServiceInterface {
       String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
 
       return ResponseEntity.ok(
-          ApiResponse.builder()
+          ApiResponse.<ForgetPasswordResponse>builder()
           .status(HttpStatus.OK.value())
           .message("Quên mật khẩu Thành công! Mở link dưới và thay đổi mật khẩu.")
-          .data(resetLink)
+          .data(new ForgetPasswordResponse(resetLink,token))
           .build()
       );
   }
 
   @Override
-  public ResponseEntity<ApiResponse> changePassword(ForgetPasswordRequest request) { 
+  public ResponseEntity<ApiResponse<Void>> changePassword(ForgetPasswordRequest request) { 
 
     try {
       String emailFromToken = jwtService.extractEmail(request.getToken());
@@ -144,14 +153,14 @@ public class UserService implements UserServiceInterface {
       userRepository.save(user);
 
       return ResponseEntity.ok(
-          ApiResponse.builder()
+          ApiResponse.<Void>builder()
           .status(HttpStatus.OK.value())
           .message("Đổi mật khẩu thành công! Hãy đăng nhập lại.")
           .build()
       );
     } catch (BadCredentialsException e) {
       return ResponseEntity.ok(
-        ApiResponse.builder()
+        ApiResponse.<Void>builder()
         .status(HttpStatus.UNAUTHORIZED.value())
         .message(e.getMessage())
         .build()
@@ -160,7 +169,7 @@ public class UserService implements UserServiceInterface {
   }
 
   @Override
-  public ResponseEntity<ApiResponse> updateProfile(UserRequest request, String token){ 
+  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(UserRequest request, String token){ 
     try {
       String email = jwtService.extractEmail(token.replace("Bearer ", ""));
       User user = userRepository.findByEmail(email)
@@ -168,26 +177,28 @@ public class UserService implements UserServiceInterface {
       
       user.setFirstName(request.getFirstName());
       user.setLastName(request.getLastName());
-      // user.setDateOfBirth(request.getDateOfBirth());
+      user.setDateOfBirth(ConvertStringToDate.convert(request.getDateOfBirth()));
       user.setAddress(request.getAddress());
       user.setJob(request.getJob());
+      user.setAvatar(request.getAvatar());
       user.setGender(request.getGender());
 
       userRepository.save(user);
 
       return ResponseEntity.ok(
-          ApiResponse.builder()
+          ApiResponse.<UserResponse>builder()
           .status(HttpStatus.OK.value())
           .message("Cập nhật thông tin thành công!")
-          .data(user)
+          .data(new UserResponse(user))
           .build()
       );
 
     } catch (Exception e) {
       return ResponseEntity.ok(
-            ApiResponse.builder()
+            ApiResponse.<UserResponse>builder()
             .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .message("Có lỗi xảy ra khi cập nhật hồ sơ: " + e.getMessage())
+            .data(null)
             .build()
       );
     }
