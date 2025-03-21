@@ -1,15 +1,17 @@
 package com.social_luvina.social_dev8.modules.models.dto.request;
 
 import com.social_luvina.social_dev8.modules.models.enums.PostStatus;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class PostRequest {
   @Size(max = 255,message = "Title must not exceed 255 characters")

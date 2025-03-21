@@ -37,13 +37,13 @@ public class PostController {
 
   @Operation(summary = "Edit Post", description = "Edit Post")
   @PutMapping("/edit/{postId}")
-  public ResponseEntity<ApiResponse<PostResponse>> editPost(Authentication authentication, @PathVariable long postId, @Validated @RequestBody PostRequest request){
-    return postService.editPost(authentication,postId,request);
+  public ResponseEntity<ApiResponse<PostResponse>> editPost(Authentication authentication, @PathVariable("postId") long postId, @Validated @RequestBody PostRequest request){
+    return postService.editPost(authentication,postId,request); 
   }
 
   @Operation(summary = "Delete Post", description = "Delete Post")
   @DeleteMapping("/delete/{postId}")
-  public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication,@PathVariable long postId){
+  public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication, @PathVariable("postId") long postId){
     return postService.deletePost(authentication,postId);
   }
 }

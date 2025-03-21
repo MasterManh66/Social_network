@@ -24,10 +24,10 @@ public class User {
   @Column(name = "user_id")
   private long id;
 
-  @Column(name = "first_name",nullable = false)
+  @Column(name = "first_name")
   private String firstName;
 
-  @Column(name = "last_name",nullable = false)
+  @Column(name = "last_name")
   private String lastName;
 
   @Column(name = "address")
@@ -39,7 +39,7 @@ public class User {
   @Column(name = "job")
   private String job;
 
-  @Column(name = "gender",nullable = false)
+  @Column(name = "gender")
   @Enumerated(EnumType.STRING)
   private GenderEnum gender;
 
@@ -54,10 +54,10 @@ public class User {
   private String password;
 
   @Column(name = "isActive",nullable = false)
-  private boolean isActive;
+  private boolean isActive = true;
 
   @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
-  @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "userId"),inverseJoinColumns = @JoinColumn(name = "roleId"))
+  @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),inverseJoinColumns = @JoinColumn(name = "role_id"))
   private List<Role> roles;
 
   @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
