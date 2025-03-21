@@ -3,7 +3,7 @@ package com.social_luvina.social_dev8.modules.controllers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-// import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -41,9 +41,9 @@ public class PostController {
     return postService.editPost(authentication,postId,request);
   }
 
-  // @Operation(summary = "Delete Post", description = "Delete Post")
-  // @DeleteMapping("/delete/{postId}")
-  // public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication,@PathVariable long postId){
-  //   return postService.deletePost(authentication,postId);
-  // }
+  @Operation(summary = "Delete Post", description = "Delete Post")
+  @DeleteMapping("/delete/{postId}")
+  public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication,@PathVariable long postId){
+    return postService.deletePost(authentication,postId);
+  }
 }

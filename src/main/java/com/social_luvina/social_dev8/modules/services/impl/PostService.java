@@ -129,4 +129,28 @@ public class PostService implements PostServiceInterface {
               .build();
       return ResponseEntity.ok(apiResponse);
     }
+
+  @Override
+  public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication, long postId) {
+    Post post = getPost(postId);
+
+    User user = getAuthenticatedUser(authentication);
+    if (post.getUser().getId() != user.getId()) {
+      throw new BadCredentialsException("You do not have permission to delete this post.");
+    }
+
+    if(post.getImages()!=null){
+        for(String path : post.getImages()){
+            String sanitizedPath = path.replace("/", "");
+            imageService.deleteImageFile(sanitizedPath);
+        }
+    }
+
+    postRepository.delete(post);
+
+    ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+        .message("Delete post completed")
+        .build();
+    return ResponseEntity.ok(apiResponse);
+  }
 }
