@@ -48,4 +48,7 @@ public class Post {
   @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
   @JoinColumn(name = "user_id")
   private User user;
+
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "post")
+  private List<Comment> comments;
 }
