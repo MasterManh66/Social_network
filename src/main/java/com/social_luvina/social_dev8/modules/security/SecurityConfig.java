@@ -31,6 +31,7 @@ public class SecurityConfig {
                   "/social/auth/change_password",
                   "/social/auth/profile",
                   "/v3/api-docs/**",
+                  "/api/friend/**",
                   "/swagger-ui/**",
                   "/swagger-ui/index.html",
                   "/swagger-ui.html"

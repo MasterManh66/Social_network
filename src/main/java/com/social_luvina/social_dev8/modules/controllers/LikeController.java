@@ -1,5 +1,6 @@
 package com.social_luvina.social_dev8.modules.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +23,7 @@ import lombok.AllArgsConstructor;
 @RestController
 @RequestMapping("/api/like")
 public class LikeController {
+  @Autowired
   private LikeServiceInterface likeService;
 
   @Operation(summary = "Create Like", description = "Create Like")

@@ -71,4 +71,12 @@ public class User {
   @JsonIgnore
   @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
   private List<Like> likes;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "requester")
+  private List<Friend> friendRequested;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "receiver")
+  private List<Friend> friendReceived;
 }
