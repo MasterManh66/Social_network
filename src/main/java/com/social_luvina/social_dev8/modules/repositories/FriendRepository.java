@@ -7,7 +7,9 @@ import org.springframework.data.repository.query.Param;
 import com.social_luvina.social_dev8.modules.models.entities.Friend;
 import com.social_luvina.social_dev8.modules.models.entities.User;
 // import com.social_luvina.social_dev8.modules.models.enums.FriendStatus;
+import com.social_luvina.social_dev8.modules.models.enums.FriendStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 // import java.time.LocalDateTime;
 import java.util.Optional;
@@ -21,4 +23,6 @@ public interface FriendRepository extends JpaRepository<Friend, Long>{
   
   Optional<Friend> findByRequesterAndReceiver(User requester, User receiver);
 
+  int countByRequesterIdAndFriendStatusAndUpdatedAtBetween(long requesterId, FriendStatus status, LocalDateTime startDate, LocalDateTime endDate);
+  int countByReceiverIdAndFriendStatusAndUpdatedAtBetween(long receiverId, FriendStatus status, LocalDateTime startDate, LocalDateTime endDate);  
 }

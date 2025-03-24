@@ -1,4 +1,5 @@
 package com.social_luvina.social_dev8.modules.services.impl;
+import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
@@ -12,20 +13,32 @@ import com.social_luvina.social_dev8.modules.models.dto.response.UserDTO;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 import com.social_luvina.social_dev8.modules.models.entities.Role;
 import com.social_luvina.social_dev8.modules.models.entities.User;
+import com.social_luvina.social_dev8.modules.models.enums.FriendStatus;
 import com.social_luvina.social_dev8.modules.repositories.UserRepository;
+import com.social_luvina.social_dev8.modules.repositories.CommentRepository;
+import com.social_luvina.social_dev8.modules.repositories.FriendRepository;
+import com.social_luvina.social_dev8.modules.repositories.LikeRepository;
+import com.social_luvina.social_dev8.modules.repositories.PostRepository;
 import com.social_luvina.social_dev8.modules.repositories.RoleRepository;
 import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInterface;
 import com.social_luvina.social_dev8.modules.utils.ConvertStringToDate;
+import com.social_luvina.social_dev8.modules.utils.ExcelGenerator;
 
 import lombok.RequiredArgsConstructor;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
 // import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 // import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 // import java.util.ArrayList;
@@ -48,6 +61,10 @@ public class UserService implements UserServiceInterface {
   private final PasswordEncoder passwordEncoder;
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
+  private final PostRepository postRepository;
+  private final FriendRepository friendRepository;
+  private final CommentRepository commentRepository;
+  private final LikeRepository likeRepository;
   // private final ImageService imageService;
 
   @Override
@@ -204,4 +221,35 @@ public class UserService implements UserServiceInterface {
     }
   }
 
+  @Override
+  public ResponseEntity<InputStreamResource> exportUserReport(String email) throws IOException {
+        // Lấy dữ liệu người dùng
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+
+        // Lấy dữ liệu báo cáo
+        LocalDateTime startDate = LocalDateTime.now().minusWeeks(1);
+        LocalDateTime endDate = LocalDateTime.now();
+        long userId = user.getId();
+
+        int postCount = postRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
+        int friendSenderCount = friendRepository.countByRequesterIdAndFriendStatusAndUpdatedAtBetween(userId, FriendStatus.ACCEPTED, startDate, endDate);
+        int friendReceiverCount = friendRepository.countByReceiverIdAndFriendStatusAndUpdatedAtBetween(userId, FriendStatus.ACCEPTED, startDate, endDate);
+        int newFriendCount = friendSenderCount + friendReceiverCount;
+        int newCommentCount = commentRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
+        int likePostCount = likeRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
+        int totalLike = likePostCount;
+
+        // Tạo file Excel
+        ByteArrayInputStream excelFile = ExcelGenerator.generateExcelReport(user, postCount, newFriendCount, totalLike, newCommentCount);
+
+        // Thiết lập header cho file tải về
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=user_report.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(excelFile));
+    }
 }

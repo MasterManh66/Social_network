@@ -1,9 +1,11 @@
 package com.social_luvina.social_dev8.modules.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 // import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 // import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 // import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +22,7 @@ import com.social_luvina.social_dev8.modules.repositories.UserRepository;
 import com.social_luvina.social_dev8.modules.services.interfaces.UserServiceInterface;
 
 import jakarta.validation.Valid;
+import java.io.IOException;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -80,5 +83,10 @@ public class UserController {
 
     ResponseEntity<ApiResponse<UserResponse>> response = userService.updateProfile(request, token);
     return response;
+  }
+
+  @GetMapping("/report")
+  public ResponseEntity<InputStreamResource> downloadReport(@RequestParam String email) throws IOException {
+    return userService.exportUserReport(email);
   }
 }
