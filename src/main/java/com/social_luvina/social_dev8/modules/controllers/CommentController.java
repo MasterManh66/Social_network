@@ -26,13 +26,13 @@ public class CommentController {
     private final CommentServiceInterface commentService;
 
     @Operation(summary = "Create Comment", description = "Create Comment")
-    @PostMapping("create")
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(Authentication authentication, @Validated @RequestBody CommentRequest request) {
         return commentService.createComment(authentication, request.getPostId(), request);
     }
 
     @Operation(summary = "Edit Comment", description = "Edit Comment")
-    @PutMapping("edit/{commentId}")
+    @PutMapping("/edit/{commentId}")
     public ResponseEntity<ApiResponse<CommentResponse>> editComment(Authentication authentication ,@PathVariable("commentId") long commentId, @Validated @RequestBody CommentRequest request) {
         return commentService.editComment(authentication, commentId, request);
     }

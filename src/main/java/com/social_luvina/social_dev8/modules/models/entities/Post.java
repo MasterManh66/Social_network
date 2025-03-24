@@ -51,4 +51,8 @@ public class Post {
 
   @OneToMany(cascade = CascadeType.ALL,mappedBy = "post")
   private List<Comment> comments;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "post")
+  private List<Like> likes;
 }

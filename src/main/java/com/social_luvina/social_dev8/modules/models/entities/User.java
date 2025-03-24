@@ -3,6 +3,7 @@ package com.social_luvina.social_dev8.modules.models.entities;
 import java.util.List;
 import java.sql.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.social_luvina.social_dev8.modules.models.enums.GenderEnum;
 
 import jakarta.persistence.*;
@@ -53,6 +54,7 @@ public class User {
   @Column(name = "password",nullable = false)
   private String password;
 
+  @Builder.Default
   @Column(name = "isActive",nullable = false)
   private boolean isActive = true;
 
@@ -65,4 +67,8 @@ public class User {
 
   @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
   private List<Comment> comments;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+  private List<Like> likes;
 }
