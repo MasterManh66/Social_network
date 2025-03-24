@@ -1,5 +1,7 @@
 package com.social_luvina.social_dev8.modules.services.interfaces;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
@@ -11,4 +13,6 @@ public interface PostServiceInterface {
   ResponseEntity<ApiResponse<PostResponse>> createPost(Authentication authentication, PostRequest request);
   ResponseEntity<ApiResponse<PostResponse>> editPost(Authentication authentication, long postId, PostRequest request);
   ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication, long postId);
+
+  ResponseEntity<ApiResponse<List<PostResponse>>> getTimeline(Authentication authentication);
 }
