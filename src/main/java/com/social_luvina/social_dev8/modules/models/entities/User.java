@@ -3,6 +3,7 @@ package com.social_luvina.social_dev8.modules.models.entities;
 import java.util.List;
 import java.sql.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.social_luvina.social_dev8.modules.models.enums.GenderEnum;
 
 import jakarta.persistence.*;
@@ -24,10 +25,10 @@ public class User {
   @Column(name = "user_id")
   private long id;
 
-  @Column(name = "first_name",nullable = false)
+  @Column(name = "first_name")
   private String firstName;
 
-  @Column(name = "last_name",nullable = false)
+  @Column(name = "last_name")
   private String lastName;
 
   @Column(name = "address")
@@ -39,7 +40,7 @@ public class User {
   @Column(name = "job")
   private String job;
 
-  @Column(name = "gender",nullable = false)
+  @Column(name = "gender")
   @Enumerated(EnumType.STRING)
   private GenderEnum gender;
 
@@ -53,10 +54,25 @@ public class User {
   @Column(name = "password",nullable = false)
   private String password;
 
-  @Column(name = "isActive",nullable = false)
-  private boolean isActive;
-
   @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
-  @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "userId"),inverseJoinColumns = @JoinColumn(name = "roleId"))
+  @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),inverseJoinColumns = @JoinColumn(name = "role_id"))
   private List<Role> roles;
+
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+  private List<Post> posts;
+
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+  private List<Comment> comments;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+  private List<Like> likes;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "requester")
+  private List<Friend> friendRequested;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL,mappedBy = "receiver")
+  private List<Friend> friendReceived;
 }

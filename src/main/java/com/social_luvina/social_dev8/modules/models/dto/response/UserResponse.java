@@ -1,7 +1,8 @@
 package com.social_luvina.social_dev8.modules.models.dto.response;
 
-import com.social_luvina.social_dev8.modules.models.entities.User;
 import com.social_luvina.social_dev8.modules.models.enums.GenderEnum;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.social_luvina.social_dev8.modules.models.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +14,7 @@ import java.sql.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
   private long id;
   private String firstName;
@@ -23,6 +25,11 @@ public class UserResponse {
   private GenderEnum gender;
   private String avatar;
 
+  private int postCount;
+  private int newFriendCount;
+  private int totalLike;
+  private int newCommentCount;
+
   public UserResponse(User user) {
     this.id = user.getId();
     this.firstName = user.getFirstName();
@@ -32,5 +39,13 @@ public class UserResponse {
     this.dateOfBirth = user.getDateOfBirth();
     this.gender = user.getGender();
     this.avatar = user.getAvatar();
+  }
+
+  public UserResponse(User user, int postCount, int newFriendCount, int totalLike, int newCommentCount) {
+      this(user);
+      this.postCount = postCount;
+      this.newFriendCount = newFriendCount;
+      this.totalLike = totalLike;
+      this.newCommentCount = newCommentCount;
   }
 }

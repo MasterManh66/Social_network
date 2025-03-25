@@ -1,5 +1,8 @@
 package com.social_luvina.social_dev8.modules.services.interfaces;
 
+import java.io.IOException;
+
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 // import org.springframework.web.multipart.MultipartFile;
 
@@ -19,5 +22,5 @@ public interface UserServiceInterface {
   ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(ForgetPasswordRequest request);
   ResponseEntity<ApiResponse<Void>> changePassword(ForgetPasswordRequest request);
   ResponseEntity<ApiResponse<UserResponse>> updateProfile(UserRequest request, String token);
-
+  ResponseEntity<InputStreamResource> exportUserReport(String email) throws IOException;
 }

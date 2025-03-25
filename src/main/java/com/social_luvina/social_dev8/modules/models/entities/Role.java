@@ -18,16 +18,16 @@ import lombok.NoArgsConstructor;
 @Table(name = "role")
 public class Role {
   @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "role_id")
-    private Long id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "role_id")
+  private Long id;
 
-    @Column(name = "role_name",nullable = false)
-    private String roleName;
+  @Column(name = "role_name",nullable = false)
+  private String roleName;
 
-    @JsonIgnore
-    @ManyToMany(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
-    @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "roleId"),inverseJoinColumns = @JoinColumn(name = "userId"))
-    private List<User> users;
+  @JsonIgnore
+  @ManyToMany(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
+  @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "role_id"),inverseJoinColumns = @JoinColumn(name = "user_id"))
+  private List<User> users;
 
 }

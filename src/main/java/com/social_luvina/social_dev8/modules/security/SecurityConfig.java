@@ -30,10 +30,11 @@ public class SecurityConfig {
                   "/social/auth/forgetpassword",
                   "/social/auth/change_password",
                   "/social/auth/profile",
-                  "/v3/api-docs/**",
                   "/swagger-ui/**",
-                  "/swagger-ui/index.html",
-                  "/swagger-ui.html"
+                  "/v3/api-docs/**",
+                  "/swagger-ui.html",
+                  "/swagger-resources/**",
+                  "/webjars/**"
             ).permitAll()
 
             // Các API còn lại yêu cầu xác thực

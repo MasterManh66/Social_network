@@ -110,6 +110,10 @@ public class ImageService {
                 contentType.equals(MediaType.IMAGE_GIF_VALUE);
     }
 
+    public List<String> saveImage(List<String> images) {
+      return images.stream().map(image -> "uploads/" + image).toList();
+    }
+
     public ResponseEntity<?> downloadImage(String filename) {
       try {
           // Xác định đường dẫn file
