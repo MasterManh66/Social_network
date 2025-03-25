@@ -1,6 +1,7 @@
 package com.social_luvina.social_dev8.modules.models.dto.response;
 
 import com.social_luvina.social_dev8.modules.models.enums.GenderEnum;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.social_luvina.social_dev8.modules.models.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,7 @@ import java.sql.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
   private long id;
   private String firstName;

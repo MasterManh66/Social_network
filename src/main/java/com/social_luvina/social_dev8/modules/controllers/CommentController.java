@@ -38,7 +38,7 @@ public class CommentController {
     }
 
     @Operation(summary = "Delete Comment", description = "Delete Comment")
-    @DeleteMapping("/delete/{CommentId}")
+    @DeleteMapping("/delete/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(Authentication authentication, @PathVariable("commentId") long commentId){
         return commentService.deleteComment(authentication,commentId);
     }
