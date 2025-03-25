@@ -54,10 +54,6 @@ public class User {
   @Column(name = "password",nullable = false)
   private String password;
 
-  @Builder.Default
-  @Column(name = "isActive",nullable = false)
-  private boolean isActive = true;
-
   @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
   @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),inverseJoinColumns = @JoinColumn(name = "role_id"))
   private List<Role> roles;

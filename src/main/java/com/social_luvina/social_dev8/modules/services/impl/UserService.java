@@ -113,7 +113,6 @@ public class UserService implements UserServiceInterface {
         .email(request.getEmail().toLowerCase())
         .password(encodedPassword)
         .roles(Collections.singletonList(userRole))
-        .isActive(false)
         .build();
     } catch (Exception e) {
       return ResponseEntity.ok(
