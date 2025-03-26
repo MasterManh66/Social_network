@@ -27,6 +27,7 @@ public class SecurityConfig {
             .requestMatchers(
                   "/social/auth/login",
                   "/social/auth/register",
+                  "/social/auth/verify",
                   "/social/auth/forgetpassword",
                   "/social/auth/change_password",
                   "/social/auth/profile",

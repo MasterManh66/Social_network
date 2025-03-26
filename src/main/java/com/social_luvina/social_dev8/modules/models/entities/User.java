@@ -54,6 +54,9 @@ public class User {
   @Column(name = "password",nullable = false)
   private String password;
 
+  @Column(name = "isActive",nullable = false)
+  private boolean isActive;
+
   @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
   @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),inverseJoinColumns = @JoinColumn(name = "role_id"))
   private List<Role> roles;
@@ -75,4 +78,8 @@ public class User {
   @JsonIgnore
   @OneToMany(cascade = CascadeType.ALL,mappedBy = "receiver")
   private List<Friend> friendReceived;
+
+  @JsonIgnore
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+  private List<Otp> otp;
 }
