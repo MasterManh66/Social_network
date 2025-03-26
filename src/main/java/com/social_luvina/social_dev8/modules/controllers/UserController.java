@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 // import org.springframework.web.multipart.MultipartFile;
 
+import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
@@ -73,16 +74,13 @@ public class UserController {
   }
 
   @PutMapping("/change_password")
-  public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ForgetPasswordRequest request) {
+  public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
       return userService.changePassword(request);
   }
 
   @PutMapping("/profile")
-  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
-    @Valid @RequestBody UserRequest request, @RequestHeader("Authorization") String token){ 
-
-    ResponseEntity<ApiResponse<UserResponse>> response = userService.updateProfile(request, token);
-    return response;
+  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@Valid @RequestBody UserRequest request, @RequestHeader("Authorization") String token){ 
+    return userService.updateProfile(request, token);
   }
 
   @GetMapping("/report")

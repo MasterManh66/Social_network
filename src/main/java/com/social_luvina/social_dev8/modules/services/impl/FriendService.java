@@ -9,6 +9,7 @@ import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.FriendRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.FriendResponse;
+// import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 import com.social_luvina.social_dev8.modules.models.entities.Friend;
 import com.social_luvina.social_dev8.modules.models.entities.User;
 import com.social_luvina.social_dev8.modules.models.enums.FriendStatus;
@@ -19,6 +20,7 @@ import com.social_luvina.social_dev8.modules.services.interfaces.FriendServiceIn
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+// import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,6 +33,23 @@ public class FriendService implements FriendServiceInterface{
     return userRepository.findByEmail(authentication.getName())
           .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
   }
+
+//   @Override
+//   public ResponseEntity<ApiResponse<List<UserResponse>>> getListFriend(Authentication authentication, FriendRequest request){
+//     User user = getAuthenticatedUser(authentication);
+
+//     List<User> friends = friendRepository.findAllFriends(user);
+
+//     List<UserResponse> friendResponses = friends.stream()
+//         .map(UserResponse::new)
+//         .toList();
+
+//     return ResponseEntity.ok(ApiResponse.<List<UserResponse>>builder()
+//         .status(HttpStatus.OK.value())
+//         .message(friendResponses.isEmpty() ? "Không có bạn bè nào!" : "Lấy danh sách bạn bè thành công!")
+//         .data(friendResponses)
+//         .build());
+//   }
 
 
   @Override
@@ -76,12 +95,11 @@ public class FriendService implements FriendServiceInterface{
           );
       }
   
-      // Nếu không có lời mời nào → Tạo mới
       Friend newFriend = Friend.builder()
               .requester(user)
               .receiver(receiver)
               .friendStatus(FriendStatus.PENDING)
-              .createdAt(LocalDateTime.now())  // Đảm bảo có giá trị
+              .createdAt(LocalDateTime.now())
               .build();
       friendRepository.save(newFriend);
   
@@ -146,7 +164,6 @@ public class FriendService implements FriendServiceInterface{
             throw new CustomException("No pending friend request found", HttpStatus.NOT_FOUND);
         }
 
-        // Xóa lời mời kết bạn
         friendRepository.delete(friendRequest.get());
 
         return ResponseEntity.ok(
@@ -170,7 +187,6 @@ public class FriendService implements FriendServiceInterface{
             throw new CustomException("No friendship found", HttpStatus.NOT_FOUND);
         }
 
-        // Xóa quan hệ bạn bè
         friendship.ifPresent(friendRepository::delete);
         reverseFriendship.ifPresent(friendRepository::delete);
 

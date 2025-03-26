@@ -22,8 +22,8 @@ import com.social_luvina.social_dev8.modules.models.entities.User;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
   
-  @Query("SELECT p FROM Post p WHERE p.user IN :friends ORDER BY p.createdAt DESC")
-  Page<Post> findRecentPostsByUsers(@Param("friends") List<User> friends, Pageable pageable);
+  @Query("SELECT p FROM Post p WHERE p.user IN :friends OR p.user = :currentUser ORDER BY p.createdAt DESC")
+  Page<Post> findRecentPostsByUsersAndSelf(@Param("friends") List<User> friends, @Param("currentUser") User currentUser, Pageable pageable);
 
   int countByUserIdAndCreatedAtBetween(long userId, LocalDateTime startDate, LocalDateTime endDate);
 }

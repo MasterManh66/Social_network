@@ -16,8 +16,7 @@ import java.util.Optional;
 
 public interface FriendRepository extends JpaRepository<Friend, Long>{
 
-  @Query("SELECT f.receiver FROM Friend f WHERE f.requester = :user AND f.friendStatus = 'ACCEPTED' " +
-           "UNION " +
+  @Query("SELECT f.receiver FROM Friend f WHERE f.requester = :user AND f.friendStatus = 'ACCEPTED' " +"UNION " +
            "SELECT f.requester FROM Friend f WHERE f.receiver = :user AND f.friendStatus = 'ACCEPTED'")
   List<User> findAllFriends(@Param("user") User user);
   

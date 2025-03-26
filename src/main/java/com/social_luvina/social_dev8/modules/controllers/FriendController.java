@@ -1,5 +1,7 @@
 package com.social_luvina.social_dev8.modules.controllers;
 
+// import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -12,10 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.social_luvina.social_dev8.modules.models.dto.request.FriendRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.FriendResponse;
+// import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 import com.social_luvina.social_dev8.modules.services.interfaces.FriendServiceInterface;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
+// import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
 @AllArgsConstructor
@@ -48,4 +53,8 @@ public class FriendController {
       return friendService.deleteFriend(authentication, request);
   }
 
+//   @GetMapping("/list")
+//   public ResponseEntity<ApiResponse<List<UserResponse>>> getListFriend(Authentication authentication,@Validated @RequestBody FriendRequest request) {
+//         return friendService.getListFriend(authentication, request);
+//   }
 }

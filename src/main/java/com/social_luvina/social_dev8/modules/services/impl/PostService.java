@@ -1,6 +1,7 @@
 package com.social_luvina.social_dev8.modules.services.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -163,14 +164,15 @@ public class PostService implements PostServiceInterface {
   public ResponseEntity<ApiResponse<List<PostResponse>>> getTimeline(Authentication authentication) {
       User user = getAuthenticatedUser(authentication);
 
-      // Lấy danh sách bạn bè của user
       List<User> friends = friendRepository.findAllFriends(user);
 
-      // Lấy danh sách bài đăng gần nhất của user và bạn bè
-      Page<Post> posts = postRepository.findRecentPostsByUsers(friends, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
+      if (friends.isEmpty()) {
+        friends = new ArrayList<>();
+      }
+      friends.add(user);
 
+      Page<Post> posts = postRepository.findRecentPostsByUsersAndSelf(friends, user, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
 
-      // Chuyển đổi thành DTO
       List<PostResponse> postResponses = posts.getContent().stream().map(post -> 
           PostResponse.builder()
               .id(post.getId())

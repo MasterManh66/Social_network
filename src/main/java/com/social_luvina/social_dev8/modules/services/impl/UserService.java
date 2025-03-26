@@ -1,6 +1,7 @@
 package com.social_luvina.social_dev8.modules.services.impl;
 import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.AuthRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
@@ -177,7 +178,6 @@ public class UserService implements UserServiceInterface {
         ApiResponse.<Void>builder()
             .status(HttpStatus.OK.value())
             .message("Đăng ký tài khoản thành công!")
-            // .data(newUser)
             .build()
     );
   }
@@ -187,20 +187,20 @@ public class UserService implements UserServiceInterface {
     User user = userRepository.findByEmail(request.getEmail())
               .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
 
-      String token = jwtService.generateToken(user.getId(), user.getEmail()); 
-      String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
+    String token = jwtService.generateToken(user.getId(), user.getEmail()); 
+    String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
 
-      return ResponseEntity.ok(
-          ApiResponse.<ForgetPasswordResponse>builder()
+    return ResponseEntity.ok(
+        ApiResponse.<ForgetPasswordResponse>builder()
           .status(HttpStatus.OK.value())
           .message("Quên mật khẩu Thành công! Mở link dưới và thay đổi mật khẩu.")
           .data(new ForgetPasswordResponse(resetLink,token))
           .build()
-      );
+    );
   }
 
   @Override
-  public ResponseEntity<ApiResponse<Void>> changePassword(ForgetPasswordRequest request) { 
+  public ResponseEntity<ApiResponse<Void>> changePassword(ChangePasswordRequest request) { 
 
     try {
       String emailFromToken = jwtService.extractEmail(request.getToken());
@@ -212,7 +212,7 @@ public class UserService implements UserServiceInterface {
       User user = userRepository.findByEmail(request.getEmail())
         .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
 
-      user.setPassword(passwordEncoder.encode(request.getPassword()));
+      user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 
       userRepository.save(user);
 

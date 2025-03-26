@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
@@ -76,7 +77,7 @@ public class UserControllerTest {
   @Test
   void testForgetPassword_Success() throws Exception {
     String token = "mocked_jwt_token";
-    ForgetPasswordRequest request = ForgetPasswordRequest.builder().email("user@gmail.com").token("mocked_jwt_token").password("123456").build();
+    ForgetPasswordRequest request = ForgetPasswordRequest.builder().email("user@gmail.com").build();
     ForgetPasswordResponse response = ForgetPasswordResponse.builder().resetLink("http://localhost:8080/social/auth/change_password?token=" + token).token("mocked_jwt_token").build();
 
     ApiResponse<ForgetPasswordResponse> apiResponse = ApiResponse.<ForgetPasswordResponse>builder().message("Password reset link generated successfully").data(response).build();
@@ -92,7 +93,7 @@ public class UserControllerTest {
 
   @Test
   void testChangePassword_Success() throws Exception {
-    ForgetPasswordRequest request = ForgetPasswordRequest.builder().email("user@gmail.com").token("mocked_jwt_token").password("123456789").build();
+    ChangePasswordRequest request = ChangePasswordRequest.builder().email("user@gmail.com").token("mocked_jwt_token").newPassword("123456789").build();
     ApiResponse<Void> apiResponse = ApiResponse.<Void>builder().message("Password change successfully").build();
 
     when(userService.changePassword(any())).thenReturn(ResponseEntity.ok(apiResponse));
