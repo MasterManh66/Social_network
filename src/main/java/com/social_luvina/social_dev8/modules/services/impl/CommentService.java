@@ -9,6 +9,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.CommentRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.CommentResponse;
@@ -33,7 +34,7 @@ public class CommentService implements CommentServiceInterface {
 
     private User getAuthenticatedUser(Authentication authentication) {
     return userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new BadCredentialsException("User is not found"));
+            .orElseThrow(() -> new BadCredentialsException("User không tồn tại"));
     }
 
     private Post getPost(long postId) {
@@ -43,13 +44,13 @@ public class CommentService implements CommentServiceInterface {
 
     private Comment getComment(long commentId) {
         return commentRepository.findById(commentId)
-            .orElseThrow(() -> new BadCredentialsException("Comment is not found"));
+            .orElseThrow(() -> new CustomException("Comment không tồn tại", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(Authentication authentication, long postId, CommentRequest request) {
-        if ((request.getImages() == null || request.getImages().isEmpty()) && request.getContent() == null) {
-            throw new BadCredentialsException("Images or Content is required");
+        if ((request.getImages() == null || request.getImages().isEmpty()) && (request.getContent() == null || request.getContent().isEmpty())) {
+            throw new CustomException("Images hoặc content bị trống", HttpStatus.BAD_REQUEST);
         }
 
         User user = getAuthenticatedUser(authentication);
@@ -57,9 +58,7 @@ public class CommentService implements CommentServiceInterface {
 
         List<String> imagePaths = request.getImages() != null ? imageService.saveImage(request.getImages()) : null;
 
-        Comment comment;
-        try {
-            comment = Comment.builder()
+        Comment comment = Comment.builder()
                 .content(request.getContent())
                 .createdAt(LocalDateTime.now())
                 .images(imagePaths)
@@ -67,16 +66,7 @@ public class CommentService implements CommentServiceInterface {
                 .post(post)
                 .build();
 
-            commentRepository.save(comment);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.<CommentResponse>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message("Tạo bình luận thất bại: " + e.getMessage())
-                    .build()
-            );
-        }
+        commentRepository.save(comment);
 
         CommentResponse commentResponse = new CommentResponse(
             comment.getId(),
@@ -90,7 +80,7 @@ public class CommentService implements CommentServiceInterface {
 
         return ResponseEntity.ok(
             ApiResponse.<CommentResponse>builder()
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.CREATED.value())
                 .message("Tạo bình luận thành công!")
                 .data(commentResponse)
                 .build()
@@ -100,26 +90,33 @@ public class CommentService implements CommentServiceInterface {
     @Override
     public ResponseEntity<ApiResponse<CommentResponse>> editComment(Authentication authentication, long commentId, CommentRequest request){
         if ((request.getImages() == null || request.getImages().isEmpty()) && request.getContent() == null) {
-            throw new BadCredentialsException("Images or Content is required");
+            throw new CustomException("Images or Content is required", HttpStatus.BAD_REQUEST);
         }
 
         User user = getAuthenticatedUser(authentication);
         Comment comment = getComment(commentId);
       
         if (comment.getUser().getId() != user.getId()) {
-            throw new BadCredentialsException("You do not have permission to edit this comment.");
+            throw new CustomException("Bạn không có quyền chỉnh sửa comment này.", HttpStatus.FORBIDDEN);
         }
-      
-        if (request.getContent() != null) {
+
+        boolean isUpdated = false;
+
+        if (request.getContent() != null && !request.getContent().equals(comment.getContent())) {
             comment.setContent(request.getContent());
+            isUpdated = true;
         }
+
         comment.setUpdatedAt(LocalDateTime.now());
-          
-        if (request.getImages() != null && !request.getImages().isEmpty()) {
+        
+        if ((request.getImages() != null && !request.getImages().isEmpty()) && request.getImages().equals(comment.getImages())) {
             comment.setImages(request.getImages());
+            isUpdated = true;
         }
       
-        commentRepository.save(comment);
+        if (isUpdated){
+            commentRepository.save(comment);
+        }
       
         CommentResponse commentResponse = new CommentResponse(
             comment.getId(),
@@ -133,7 +130,7 @@ public class CommentService implements CommentServiceInterface {
       
         return ResponseEntity.ok(
             ApiResponse.<CommentResponse>builder()
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.CREATED.value())
                 .message("Bình luận đã sửa đổi!")
                 .data(commentResponse)
                 .build()
@@ -146,10 +143,10 @@ public class CommentService implements CommentServiceInterface {
         User user = getAuthenticatedUser(authentication);
 
         if (comment.getUser().getId() != user.getId()) {
-            throw new BadCredentialsException("You do not have permission to delete this comment.");
+            throw new CustomException("Bạn không có quyền xoá comment này.", HttpStatus.FORBIDDEN);
         }
 
-        if(comment.getImages()!=null){
+        if (comment.getImages() != null){
             for(String path : comment.getImages()){
                 String sanitizedPath = path.replace("/", "");
                 imageService.deleteImageFile(sanitizedPath);

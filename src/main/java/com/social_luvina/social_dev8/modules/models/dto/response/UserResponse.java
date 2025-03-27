@@ -25,10 +25,10 @@ public class UserResponse {
   private GenderEnum gender;
   private String avatar;
 
-  private int postCount;
-  private int newFriendCount;
-  private int totalLike;
-  private int newCommentCount;
+  private Integer postCount;
+  private Integer newFriendCount;
+  private Integer totalLike;
+  private Integer newCommentCount;
 
   public UserResponse(User user) {
     this.id = user.getId();
@@ -41,7 +41,7 @@ public class UserResponse {
     this.avatar = user.getAvatar();
   }
 
-  public UserResponse(User user, int postCount, int newFriendCount, int totalLike, int newCommentCount) {
+  public UserResponse(User user, Integer postCount, Integer newFriendCount, Integer totalLike, Integer newCommentCount) {
       this(user);
       this.postCount = postCount;
       this.newFriendCount = newFriendCount;

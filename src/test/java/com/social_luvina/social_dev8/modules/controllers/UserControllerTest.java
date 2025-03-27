@@ -93,10 +93,10 @@ public class UserControllerTest {
 
   @Test
   void testChangePassword_Success() throws Exception {
-    ChangePasswordRequest request = ChangePasswordRequest.builder().email("user@gmail.com").token("mocked_jwt_token").newPassword("123456789").build();
+    ChangePasswordRequest request = ChangePasswordRequest.builder().newPassword("123456789").build();
     ApiResponse<Void> apiResponse = ApiResponse.<Void>builder().message("Password change successfully").build();
 
-    when(userService.changePassword(any())).thenReturn(ResponseEntity.ok(apiResponse));
+    when(userService.changePassword(any(), any())).thenReturn(ResponseEntity.ok(apiResponse));
 
     mockMvc.perform(put("/social/auth/change_password")
         .contentType(MediaType.APPLICATION_JSON)
@@ -112,9 +112,9 @@ public class UserControllerTest {
     java.sql.Date dob = new java.sql.Date(utilDate .getTime());
 
     UserRequest request = UserRequest.builder().firstName("manh").lastName("manh").address("ha noi")
-              .gender(GenderEnum.MALE).dateOfBirth("06/04/2002").job("dev").avatar("manhtran.jgp").build();
+              .gender(GenderEnum.MALE).dateOfBirth("06/04/2002").job("dev").avatar("manhtran.jpg").build();
     UserResponse response = UserResponse.builder().firstName("manh").lastName("manh").address("ha noi")
-              .gender(GenderEnum.MALE).dateOfBirth(dob).job("dev").avatar("manhtran.jgp").build();
+              .gender(GenderEnum.MALE).dateOfBirth(dob).job("dev").avatar("manhtran.jpg").build();
 
     ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder().data(response).build();
 
@@ -130,11 +130,9 @@ public class UserControllerTest {
 
   @Test
   void testDownloadReport_Success() throws Exception {
-    String email = "user@gmail.com";
-    when(userService.exportUserReport(email)).thenReturn(ResponseEntity.ok().build());
+    when(userService.exportUserReport(any())).thenReturn(ResponseEntity.ok().build());
 
     mockMvc.perform(get("/social/auth/report")
-          .param("email", email)
           .header("Authorization", "Bearer mocked_jwt_token")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk());

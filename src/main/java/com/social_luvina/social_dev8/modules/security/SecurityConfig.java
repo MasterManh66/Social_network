@@ -23,14 +23,11 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       http
           .authorizeHttpRequests(auth -> auth
-            // Cho các API không cần JWT
             .requestMatchers(
                   "/social/auth/login",
                   "/social/auth/register",
                   "/social/auth/verify",
                   "/social/auth/forgetpassword",
-                  "/social/auth/change_password",
-                  "/social/auth/profile",
                   "/swagger-ui/**",
                   "/v3/api-docs/**",
                   "/swagger-ui.html",
@@ -38,7 +35,6 @@ public class SecurityConfig {
                   "/webjars/**"
             ).permitAll()
 
-            // Các API còn lại yêu cầu xác thực
             .anyRequest().authenticated()
           )
           .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

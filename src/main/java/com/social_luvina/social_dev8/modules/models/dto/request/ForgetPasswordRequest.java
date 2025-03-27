@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ForgetPasswordRequest {
-  @NotBlank(message = "Email is not empty")
-  @Email(message = "Email is not in the correct format")
+  @NotBlank(message = "Email không được để trống")
+  @Email(message = "Email đang không đúng định dạng!")
   private String email;
 }

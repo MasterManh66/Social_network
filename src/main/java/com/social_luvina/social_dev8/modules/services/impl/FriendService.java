@@ -9,7 +9,7 @@ import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.FriendRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.FriendResponse;
-// import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 import com.social_luvina.social_dev8.modules.models.entities.Friend;
 import com.social_luvina.social_dev8.modules.models.entities.User;
 import com.social_luvina.social_dev8.modules.models.enums.FriendStatus;
@@ -20,7 +20,7 @@ import com.social_luvina.social_dev8.modules.services.interfaces.FriendServiceIn
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
-// import java.util.List;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -34,22 +34,22 @@ public class FriendService implements FriendServiceInterface{
           .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
   }
 
-//   @Override
-//   public ResponseEntity<ApiResponse<List<UserResponse>>> getListFriend(Authentication authentication, FriendRequest request){
-//     User user = getAuthenticatedUser(authentication);
+  @Override
+  public ResponseEntity<ApiResponse<List<UserResponse>>> getListFriend(Authentication authentication){
+    User user = getAuthenticatedUser(authentication);
 
-//     List<User> friends = friendRepository.findAllFriends(user);
+    List<User> friends = friendRepository.findAllFriends(user);
 
-//     List<UserResponse> friendResponses = friends.stream()
-//         .map(UserResponse::new)
-//         .toList();
+    List<UserResponse> friendResponses = friends.stream()
+        .map(UserResponse::new)
+        .toList();
 
-//     return ResponseEntity.ok(ApiResponse.<List<UserResponse>>builder()
-//         .status(HttpStatus.OK.value())
-//         .message(friendResponses.isEmpty() ? "Không có bạn bè nào!" : "Lấy danh sách bạn bè thành công!")
-//         .data(friendResponses)
-//         .build());
-//   }
+    return ResponseEntity.ok(ApiResponse.<List<UserResponse>>builder()
+        .status(HttpStatus.OK.value())
+        .message(friendResponses.isEmpty() ? "Không có bạn bè nào!" : "Lấy danh sách bạn bè thành công!")
+        .data(friendResponses)
+        .build());
+  }
 
 
   @Override

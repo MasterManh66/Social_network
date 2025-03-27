@@ -1,5 +1,6 @@
 package com.social_luvina.social_dev8.modules.services.impl;
 
+import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.entities.User;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
@@ -17,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -98,14 +98,13 @@ public class UserServiceTest {
 
       LoginRequest request = new LoginRequest("wrong@gmail.com", "123456");
 
-      BadCredentialsException exception = assertThrows(
-          BadCredentialsException.class,
+      CustomException exception = assertThrows(
+        CustomException.class,
           () -> userService.authenticate(request)
       );
 
       assertEquals("Email không chính xác!", exception.getMessage());
     }
-
 
     @Test
     void authenticate_Fail_WrongPassword() {
@@ -114,8 +113,8 @@ public class UserServiceTest {
 
       LoginRequest request = new LoginRequest("user@gmail.com", "123456789");
       
-      BadCredentialsException exception = assertThrows(
-          BadCredentialsException.class,
+      CustomException exception = assertThrows(
+        CustomException.class,
           () -> userService.authenticate(request)
       );
       assertEquals("Password không chính xác!", exception.getMessage());

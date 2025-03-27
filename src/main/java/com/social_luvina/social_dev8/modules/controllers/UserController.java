@@ -2,13 +2,9 @@ package com.social_luvina.social_dev8.modules.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-// import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-// import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-// import org.springframework.web.multipart.MultipartFile;
 
 import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
@@ -29,7 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 
@@ -58,8 +54,6 @@ public class UserController {
       .id(user.getId())
       .email(user.getEmail())
       .build();
-    
-    // SuccessResource<UserDTO> response = new SuccessResource<>("SUCCESS", userDto);
     return ResponseEntity.ok(userDto);
   }
 
@@ -74,17 +68,17 @@ public class UserController {
   }
 
   @PutMapping("/change_password")
-  public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-      return userService.changePassword(request);
+  public ResponseEntity<ApiResponse<Void>> changePassword(Authentication authentication, @Valid @RequestBody ChangePasswordRequest request) {
+      return userService.changePassword(authentication, request);
   }
 
   @PutMapping("/profile")
-  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@Valid @RequestBody UserRequest request, @RequestHeader("Authorization") String token){ 
-    return userService.updateProfile(request, token);
+  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(Authentication authentication, @Valid @RequestBody UserRequest request){ 
+    return userService.updateProfile(authentication, request);
   }
 
   @GetMapping("/report")
-  public ResponseEntity<InputStreamResource> downloadReport(@RequestParam String email) throws IOException {
-    return userService.exportUserReport(email);
+  public ResponseEntity<InputStreamResource> downloadReport(Authentication authentication) throws IOException {
+    return userService.exportUserReport(authentication);
   }
 }

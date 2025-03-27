@@ -66,7 +66,7 @@ public class FriendControllerTest {
 
   @Test
   void testAcceptFriend_Success() throws Exception{
-    FriendRequest request = FriendRequest.builder().receiverId(3L).build();
+    FriendRequest request = FriendRequest.builder().receiverId(3).build();
     FriendResponse response = FriendResponse.builder()
             .userId(1L)
             .fullName("Rose Nguyen")
@@ -88,7 +88,7 @@ public class FriendControllerTest {
 
   @Test
   void testDeclineFriend_Success() throws Exception{
-    FriendRequest request = FriendRequest.builder().receiverId(3L).build();
+    FriendRequest request = FriendRequest.builder().receiverId(3).build();
 
     ApiResponse<Void> apiResponse = ApiResponse.<Void>builder().message("Send successfully").build();
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
@@ -23,7 +24,7 @@ public interface UserServiceInterface {
   ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(AuthRequest request) ;
   ResponseEntity<ApiResponse<Void>> registerUser(RegisterRequest request);
   ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(ForgetPasswordRequest request);
-  ResponseEntity<ApiResponse<Void>> changePassword(ChangePasswordRequest request);
-  ResponseEntity<ApiResponse<UserResponse>> updateProfile(UserRequest request, String token);
-  ResponseEntity<InputStreamResource> exportUserReport(String email) throws IOException;
+  ResponseEntity<ApiResponse<Void>> changePassword(Authentication authentication, ChangePasswordRequest request);
+  ResponseEntity<ApiResponse<UserResponse>> updateProfile(Authentication authentication, UserRequest request);
+  ResponseEntity<InputStreamResource> exportUserReport(Authentication authentication) throws IOException;
 }

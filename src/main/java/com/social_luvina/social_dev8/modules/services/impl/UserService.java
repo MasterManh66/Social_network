@@ -35,14 +35,13 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -63,13 +62,19 @@ public class UserService implements UserServiceInterface {
   private final OtpRepository otpRepository;
   // private final ImageService imageService;
 
+  private User getAuthenticatedUser(Authentication authentication) {
+    return userRepository.findByEmail(authentication.getName())
+          .orElseThrow(() -> new BadCredentialsException("User không tồn tại"));
+  }
+
   @Override
   public ResponseEntity<ApiResponse<?>> authenticate(LoginRequest request){
 
-    User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new BadCredentialsException("Email không chính xác!"));
+    User user = userRepository.findByEmail(request.getEmail())
+          .orElseThrow(() -> new CustomException("Email không chính xác!", HttpStatus.CONFLICT));
 
     if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-      throw new BadCredentialsException("Password không chính xác!");
+      throw new CustomException("Password không chính xác!", HttpStatus.CONFLICT);
     }
 
     if (!user.isActive()) {
@@ -101,82 +106,61 @@ public class UserService implements UserServiceInterface {
 
   @Override
   public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(AuthRequest request) { 
-    try {
-      Otp otpRecord = otpRepository.findByOtpCodeAndIsUsedFalse(request.getOtp())
-          .orElseThrow(() -> new BadRequestException("OTP không hợp lệ hoặc đã sử dụng!"));
+    Otp otpRecord = otpRepository.findByOtpCodeAndIsUsedFalse(request.getOtp())
+        .orElseThrow(() -> new CustomException("OTP không hợp lệ hoặc đã sử dụng!", HttpStatus.BAD_REQUEST));
 
-      if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
-          throw new BadRequestException("OTP đã hết hạn!");
-      }
+    if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
+      throw new CustomException("OTP đã hết hạn!", HttpStatus.NOT_FOUND);
+    }
 
-      if (!otpRecord.getOtpCode().equals(request.getOtp())) {
-        throw new BadRequestException("OTP không chính xác!");
-      }
+    if (!otpRecord.getOtpCode().equals(request.getOtp())) {
+      throw new CustomException("OTP không chính xác!", HttpStatus.CONFLICT);
+    }
 
-      otpRecord.setUsed(true);
-      otpRepository.save(otpRecord);
+    otpRecord.setUsed(true);
+    otpRepository.save(otpRecord);
 
-      User user = otpRecord.getUser();
-      user.setActive(true);
-      userRepository.save(user);
+    User user = otpRecord.getUser();
+    user.setActive(true);
+    userRepository.save(user);
 
-      otpRepository.deleteAllOtpsByUser(user);
+    otpRepository.deleteAllOtpsByUser(user);
 
-      String token = jwtService.generateToken(user.getId(), user.getEmail());
+    String token = jwtService.generateToken(user.getId(), user.getEmail());
 
-      return ResponseEntity.ok(
-          ApiResponse.<AuthResponse>builder()
+    return ResponseEntity.ok(
+        ApiResponse.<AuthResponse>builder()
               .status(HttpStatus.OK.value())
               .message("Xác thực OTP thành công!")
               .data(new AuthResponse(token, new UserDTO(user.getId(), user.getEmail())))
               .build()
-      );
-    } catch (BadRequestException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-            ApiResponse.<AuthResponse>builder()
-                .status(HttpStatus.BAD_REQUEST.value())
-                .message("Lỗi xác thực OTP! " + e.getMessage())
-                .build()
-        );
-    }
+    );
   }
 
   @Override
   public ResponseEntity<ApiResponse<Void>> registerUser(RegisterRequest request) {
-    if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-      return ResponseEntity.badRequest().body(
-        ApiResponse.<Void>builder()
-            .status(HttpStatus.BAD_REQUEST.value())
-            .message("Email đã tồn tại!")
-            .build()
-      );
+    if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+      throw new CustomException("Email không được để trống!", HttpStatus.BAD_REQUEST);
     }
 
-    String encodedPassword = passwordEncoder.encode(request.getPassword());
+    if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+      throw new CustomException("Email đã tồn tại!",  HttpStatus.CONFLICT);
+    }
 
     Role userRole = roleRepository.findByRoleName("User")
-            .orElseThrow(() -> new RuntimeException("Role USER không tồn tại!"));
-    User newUser;
-    try {
-      newUser = User.builder()
-        .email(request.getEmail().toLowerCase())
-        .password(encodedPassword)
-        .roles(Collections.singletonList(userRole))
-        .build();
-    } catch (Exception e) {
-      return ResponseEntity.ok(
-        ApiResponse.<Void>builder()
-            .status(HttpStatus.OK.value())
-            .message("Đăng ký không thành công thành công!" +e.getMessage())
-            .build()
-      );
-    }
+            .orElseThrow(() -> new CustomException("Role USER không tồn tại!", HttpStatus.INTERNAL_SERVER_ERROR));
+     
+    User newUser = User.builder()
+      .email(request.getEmail().toLowerCase().trim())
+      .password(passwordEncoder.encode(request.getPassword()))
+      .roles(Collections.singletonList(userRole))
+      .build();
 
     userRepository.save(newUser);
 
     return ResponseEntity.ok(
         ApiResponse.<Void>builder()
-            .status(HttpStatus.OK.value())
+            .status(HttpStatus.CREATED.value())
             .message("Đăng ký tài khoản thành công!")
             .build()
     );
@@ -184,71 +168,74 @@ public class UserService implements UserServiceInterface {
 
   @Override
   public ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(ForgetPasswordRequest request) { 
-    User user = userRepository.findByEmail(request.getEmail())
-              .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
+      User user = userRepository.findByEmail(request.getEmail())
+              .orElseThrow(() -> new CustomException("Email không tồn tại!", HttpStatus.NOT_FOUND));
 
-    String token = jwtService.generateToken(user.getId(), user.getEmail()); 
-    String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
+      String token = jwtService.generateToken(user.getId(), user.getEmail()); 
+      String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
+
+      return ResponseEntity.ok(
+          ApiResponse.<ForgetPasswordResponse>builder()
+            .status(HttpStatus.OK.value())
+            .message("Quên mật khẩu Thành công! Mở link dưới và thay đổi mật khẩu.")
+            .data(new ForgetPasswordResponse(resetLink,token))
+            .build()
+      );
+  }
+
+  @Override
+  public ResponseEntity<ApiResponse<Void>> changePassword(Authentication authentication, ChangePasswordRequest request) { 
+    User user = getAuthenticatedUser(authentication);
+
+    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+    userRepository.save(user);
 
     return ResponseEntity.ok(
-        ApiResponse.<ForgetPasswordResponse>builder()
+        ApiResponse.<Void>builder()
           .status(HttpStatus.OK.value())
-          .message("Quên mật khẩu Thành công! Mở link dưới và thay đổi mật khẩu.")
-          .data(new ForgetPasswordResponse(resetLink,token))
+          .message("Đổi mật khẩu thành công! Hãy đăng nhập lại.")
           .build()
     );
   }
 
   @Override
-  public ResponseEntity<ApiResponse<Void>> changePassword(ChangePasswordRequest request) { 
+  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(Authentication authentication, UserRequest request){ 
+      User user = getAuthenticatedUser(authentication);
 
-    try {
-      String emailFromToken = jwtService.extractEmail(request.getToken());
-      
-      if (emailFromToken == null || !emailFromToken.equals(request.getEmail())) {
-        throw new BadCredentialsException("Token không hợp lệ hoặc không khớp với email");
+      boolean isUpdated = false;
+      if (request.getFirstName() != null && !request.getFirstName().equals(user.getFirstName())) {
+        user.setFirstName(request.getFirstName());
+        isUpdated = true;
+      } 
+      if (request.getLastName() != null && !request.getLastName().equals(user.getLastName())) {
+        user.setLastName(request.getLastName());
+        isUpdated = true;
       }
-
-      User user = userRepository.findByEmail(request.getEmail())
-        .orElseThrow(() -> new BadCredentialsException("Email không tồn tại!"));
-
-      user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-
-      userRepository.save(user);
-
-      return ResponseEntity.ok(
-          ApiResponse.<Void>builder()
-          .status(HttpStatus.OK.value())
-          .message("Đổi mật khẩu thành công! Hãy đăng nhập lại.")
-          .build()
-      );
-    } catch (BadCredentialsException e) {
-      return ResponseEntity.ok(
-        ApiResponse.<Void>builder()
-        .status(HttpStatus.UNAUTHORIZED.value())
-        .message(e.getMessage())
-        .build()
-      );
-    }
-  }
-
-  @Override
-  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(UserRequest request, String token){ 
-    try {
-      String email = jwtService.extractEmail(token.replace("Bearer ", ""));
-      User user = userRepository.findByEmail(email)
-          .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+      if (request.getDateOfBirth() != null && (user.getDateOfBirth() == null || !request.getDateOfBirth().equals(user.getDateOfBirth().toString()))) {
+        user.setDateOfBirth(ConvertStringToDate.convert(request.getDateOfBirth()));
+        isUpdated = true;
+      }
+      if (request.getAddress() != null && !request.getAddress().equals(user.getAddress())) {
+        user.setAddress(request.getAddress());
+        isUpdated = true;
+      }
+      if (request.getJob() != null && !request.getJob().equals(user.getJob())) {
+        user.setJob(request.getJob());
+        isUpdated = true;
+      }
+      if (request.getAvatar() != null && !request.getAvatar().equals(user.getAvatar())) {
+        user.setAvatar(request.getAvatar());
+        isUpdated = true;
+      }
+      if (request.getGender() != null && !request.getGender().equals(user.getGender())) {
+        user.setGender(request.getGender());
+        isUpdated = true;
+      }    
+      if(isUpdated){
+        userRepository.save(user);
+      }
       
-      user.setFirstName(request.getFirstName());
-      user.setLastName(request.getLastName());
-      user.setDateOfBirth(ConvertStringToDate.convert(request.getDateOfBirth()));
-      user.setAddress(request.getAddress());
-      user.setJob(request.getJob());
-      user.setAvatar(request.getAvatar());
-      user.setGender(request.getGender());
-
-      userRepository.save(user);
-
       return ResponseEntity.ok(
           ApiResponse.<UserResponse>builder()
           .status(HttpStatus.OK.value())
@@ -256,47 +243,32 @@ public class UserService implements UserServiceInterface {
           .data(new UserResponse(user))
           .build()
       );
-
-    } catch (Exception e) {
-      return ResponseEntity.ok(
-            ApiResponse.<UserResponse>builder()
-            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .message("Có lỗi xảy ra khi cập nhật hồ sơ: " + e.getMessage())
-            .data(null)
-            .build()
-      );
-    }
   }
 
   @Override
-  public ResponseEntity<InputStreamResource> exportUserReport(String email) throws IOException {
-        // Lấy dữ liệu người dùng
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+  public ResponseEntity<InputStreamResource> exportUserReport(Authentication authentication) throws IOException{
+    User user = getAuthenticatedUser(authentication);
 
-        // Lấy dữ liệu báo cáo
-        LocalDateTime startDate = LocalDateTime.now().minusWeeks(1);
-        LocalDateTime endDate = LocalDateTime.now();
-        long userId = user.getId();
+    LocalDateTime startDate = LocalDateTime.now().minusWeeks(1);
+    LocalDateTime endDate = LocalDateTime.now();
+    long userId = user.getId();
 
-        int postCount = postRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
-        int friendSenderCount = friendRepository.countByRequesterIdAndFriendStatusAndUpdatedAtBetween(userId, FriendStatus.ACCEPTED, startDate, endDate);
-        int friendReceiverCount = friendRepository.countByReceiverIdAndFriendStatusAndUpdatedAtBetween(userId, FriendStatus.ACCEPTED, startDate, endDate);
-        int newFriendCount = friendSenderCount + friendReceiverCount;
-        int newCommentCount = commentRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
-        int likePostCount = likeRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
-        int totalLike = likePostCount;
+    int postCount = postRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
+    int friendSenderCount = friendRepository.countByRequesterIdAndFriendStatusAndUpdatedAtBetween(userId, FriendStatus.ACCEPTED, startDate, endDate);
+    int friendReceiverCount = friendRepository.countByReceiverIdAndFriendStatusAndUpdatedAtBetween(userId, FriendStatus.ACCEPTED, startDate, endDate);
+    int newFriendCount = friendSenderCount + friendReceiverCount;
+    int newCommentCount = commentRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
+    int likePostCount = likeRepository.countByUserIdAndCreatedAtBetween(userId, startDate, endDate);
+    int totalLike = likePostCount;
 
-        // Tạo file Excel
-        ByteArrayInputStream excelFile = ExcelGenerator.generateExcelReport(user, postCount, newFriendCount, totalLike, newCommentCount);
+    ByteArrayInputStream excelFile = ExcelGenerator.generateExcelReport(user, postCount, newFriendCount, totalLike, newCommentCount);
 
-        // Thiết lập header cho file tải về
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=user_report.xlsx");
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Content-Disposition", "attachment; filename=user_report.xlsx");
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(excelFile));
+      return ResponseEntity.ok()
+            .headers(headers)
+            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            .body(new InputStreamResource(excelFile));
     }
 }

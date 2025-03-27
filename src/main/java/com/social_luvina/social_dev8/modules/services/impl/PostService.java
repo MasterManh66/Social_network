@@ -13,11 +13,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
 
+import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.PostRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.PostResponse;
 import com.social_luvina.social_dev8.modules.models.entities.Post;
 import com.social_luvina.social_dev8.modules.models.entities.User;
+import com.social_luvina.social_dev8.modules.models.enums.PostStatus;
 import com.social_luvina.social_dev8.modules.repositories.FriendRepository;
 import com.social_luvina.social_dev8.modules.repositories.PostRepository;
 import com.social_luvina.social_dev8.modules.repositories.UserRepository;
@@ -37,7 +39,7 @@ public class PostService implements PostServiceInterface {
 
   private User getAuthenticatedUser(Authentication authentication) {
     return userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new BadCredentialsException("User is not found"));
+            .orElseThrow(() -> new BadCredentialsException("User không tồn tại"));
   }
 
   private Post getPost(long postId) {
@@ -49,15 +51,14 @@ public class PostService implements PostServiceInterface {
   @Override
   public ResponseEntity<ApiResponse<PostResponse>> createPost(Authentication authentication, PostRequest request) {
     if (request.getContent() == null && request.getTitle() == null && request.getImages() == null) {
-      throw new BadCredentialsException("Post is required a content or a title or images");
+      throw new CustomException("Post is required a content or a title or images", HttpStatus.BAD_REQUEST);
     }
 
     User user = getAuthenticatedUser(authentication);
 
     List<String> imagePaths = request.getImages() != null ? imageService.saveImage(request.getImages()) : null;
-    Post post;
-    try {
-      post = Post.builder()
+    
+    Post post = Post.builder()
         .title(request.getTitle())
         .content(request.getContent())
         .createdAt(LocalDateTime.now())
@@ -66,16 +67,7 @@ public class PostService implements PostServiceInterface {
         .user(user)
         .build();
 
-      postRepository.save(post);
-      
-    } catch (Exception e) {
-      return ResponseEntity.badRequest().body(
-        ApiResponse.<PostResponse>builder()
-            .status(HttpStatus.BAD_REQUEST.value())
-            .message("Tạo bài viết thất bại: " + e.getMessage())
-            .build()
-      );
-    }
+    postRepository.save(post);
 
     PostResponse postResponse = new PostResponse(
         post.getId(),
@@ -89,7 +81,7 @@ public class PostService implements PostServiceInterface {
 
     return ResponseEntity.ok(
         ApiResponse.<PostResponse>builder()
-            .status(HttpStatus.OK.value())
+            .status(HttpStatus.CREATED.value())
             .message("Tạo bài viết thành công!")
             .data(postResponse)
             .build()
@@ -98,26 +90,35 @@ public class PostService implements PostServiceInterface {
 
   @Override
   public ResponseEntity<ApiResponse<PostResponse>> editPost(Authentication authentication, long postId, PostRequest request) {
-    if (request.getContent() == null && request.getTitle() == null && request.getImages() == null) {
-      throw new BadCredentialsException("Post requires at least a title, content, or images.");
-    }
     Post post = getPost(postId);
 
     User user = getAuthenticatedUser(authentication);
     if (post.getUser().getId() != user.getId()) {
-      throw new BadCredentialsException("You do not have permission to edit this post.");
+      throw new CustomException("Bạn không có quyền chỉnh sửa bài viết này.", HttpStatus.FORBIDDEN);
     }
 
-    post.setTitle(request.getTitle());
-    post.setContent(request.getContent());
-    post.setPostStatus(request.getPostStatus());
+    boolean isUpdated = false;
+    if (request.getTitle() != null && !request.getTitle().equals(post.getTitle())){
+      post.setTitle(request.getTitle());
+      isUpdated = true;
+    }
+    if (request.getContent() != null && !request.getContent().equals(post.getContent())){
+      post.setContent(request.getContent());
+      isUpdated = true;
+    }
+    if (request.getPostStatus() != null && !request.getPostStatus().equals(post.getPostStatus())){
+      post.setPostStatus(request.getPostStatus());
+      isUpdated = true;
+    }
     post.setUpdatedAt(LocalDateTime.now());
-    
-    if (request.getImages() != null) {
+    if (request.getImages() != null && !request.getImages().equals(post.getImages())) {
       post.setImages(request.getImages());
+      isUpdated = true;
     }
 
-    postRepository.save(post);
+    if (isUpdated){
+      postRepository.save(post);
+    }
 
     PostResponse postResponse = new PostResponse(
       post.getId(),
@@ -142,10 +143,10 @@ public class PostService implements PostServiceInterface {
 
     User user = getAuthenticatedUser(authentication);
     if (post.getUser().getId() != user.getId()) {
-      throw new BadCredentialsException("You do not have permission to delete this post.");
+      throw new CustomException("Bạn không có quyền xoá bài viết này.", HttpStatus.FORBIDDEN);
     }
 
-    if(post.getImages()!=null){
+    if (post.getImages() != null){
         for(String path : post.getImages()){
             String sanitizedPath = path.replace("/", "");
             imageService.deleteImageFile(sanitizedPath);
@@ -171,7 +172,7 @@ public class PostService implements PostServiceInterface {
       }
       friends.add(user);
 
-      Page<Post> posts = postRepository.findRecentPostsByUsersAndSelf(friends, user, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
+      Page<Post> posts = postRepository.findRecentPostsByUsersAndSelf(friends, user, PostStatus.PRIVATE, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
 
       List<PostResponse> postResponses = posts.getContent().stream().map(post -> 
           PostResponse.builder()

@@ -32,7 +32,7 @@ public class LikeService implements LikeServiceInterface{
 
   private User getAuthenticatedUser(Authentication authentication) {
     return userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new BadCredentialsException("User không tồn tại"));
   }
 
   private Like findExistingLike(long userId, long postId) {
@@ -43,17 +43,17 @@ public class LikeService implements LikeServiceInterface{
   @Override
   public ResponseEntity<ApiResponse<LikeResponse>> createLike(Authentication authentication, long postId, LikeRequest request){
     Post post = postRepository.findById(postId)
-      .orElseThrow(() -> new CustomException("The post is not found", HttpStatus.NOT_FOUND));
+      .orElseThrow(() -> new CustomException("Bài viết không tồn tại", HttpStatus.NOT_FOUND));
 
     User user = getAuthenticatedUser(authentication);
     
     User auth = post.getUser();
     if (user.getId() != auth.getId() && post.getPostStatus().equals(PostStatus.PRIVATE)) {
-        throw new BadCredentialsException("You can not see the article this post!");
+        throw new CustomException("You can not see the article this post!", HttpStatus.FORBIDDEN);
     }
 
     if (findExistingLike(user.getId(), postId) != null) {
-      throw new CustomException("Like is Existing!", HttpStatus.CONFLICT);
+      throw new CustomException("Bạn đã Like bài viết này trước đó!", HttpStatus.CONFLICT);
     }
 
     Like like = Like.builder()
@@ -72,7 +72,7 @@ public class LikeService implements LikeServiceInterface{
 
     return ResponseEntity.ok(
             ApiResponse.<LikeResponse>builder()
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.CREATED.value())
                 .message("Like bài viết thành công!")
                 .data(likeResponse)
                 .build()
@@ -88,7 +88,7 @@ public class LikeService implements LikeServiceInterface{
     
     User auth = post.getUser();
     if (user.getId() != auth.getId() && post.getPostStatus().equals(PostStatus.PRIVATE)) {
-        throw new BadCredentialsException("You can not see the article this post!");
+        throw new CustomException("You can not see the article this post!", HttpStatus.FORBIDDEN);
     }
 
     Like like = likeRepository.findByUserIdAndPostId(user.getId(), postId);

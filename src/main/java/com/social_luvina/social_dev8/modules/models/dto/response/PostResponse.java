@@ -1,5 +1,6 @@
 package com.social_luvina.social_dev8.modules.models.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.social_luvina.social_dev8.modules.models.enums.PostStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostResponse {
   private long id;
   private long userId;

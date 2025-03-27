@@ -14,13 +14,14 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class PostRequest {
-  @Size(max = 255,message = "Title must not exceed 255 characters")
+  @Size(max = 255,message = "Tiêu đề không vượt quá 255 ký tự")
   private String title;
 
-  @Size(max = 10000,message = "Title must not exceed 2500 words")
+  @Size(max = 10000,message = "Nội dung không vượt quá 10,000 ký tự")
   private String content;
 
   private PostStatus postStatus;
 
+  @Size(max = 5, message = "Tối đa 5 ảnh!")
   private List<String> images;
 }
