@@ -7,6 +7,7 @@ import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRe
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.UserSearchRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.AuthResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordOtpResponse;
@@ -32,6 +33,7 @@ import com.social_luvina.social_dev8.modules.utils.GetOtp;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -271,6 +273,45 @@ public class UserService implements UserServiceInterface {
   }
 
   @Override
+  public ResponseEntity<ApiResponse<UserResponse>> getUserById(Authentication authentication) {
+    User user = getAuthenticatedUser(authentication);
+    User userById = userRepository.findById(user.getId())
+        .orElseThrow(() -> new CustomException("Người dùng không tồn tại!", HttpStatus.NOT_FOUND));
+    
+    UserResponse response = new UserResponse(userById);
+    response.setFullName(userById.getFirstName() + " " + userById.getLastName());
+
+    return ResponseEntity.ok(
+        ApiResponse.<UserResponse>builder()
+          .status(HttpStatus.OK.value())
+          .message("Lấy thông tin người dùng thành công!")
+          .data(response)
+          .build()
+    );
+  }
+
+  @Override
+  public ResponseEntity<ApiResponse<List<UserResponse>>> searchUsers(Authentication authentication, UserSearchRequest request){ 
+    if (request.getKeyword() == null && request.getKeyword().trim().isEmpty()){
+      throw new CustomException("Vui lòng nhập tên user muốn tìm kiếm!", HttpStatus.BAD_REQUEST);
+    }
+
+    List<User> users = userRepository.searchByKeyword(request.getKeyword().toLowerCase().trim());
+
+    if (users.isEmpty()){
+      throw new CustomException("Không tìm thấy người dùng nào!", HttpStatus.NOT_FOUND);
+    }
+    List<UserResponse> userResponses = users.stream().map(UserResponse::new).toList();
+    return ResponseEntity.ok(
+        ApiResponse.<List<UserResponse>>builder()
+          .status(HttpStatus.OK.value())
+          .message("Tìm kiếm người dùng thành công!")
+          .data(userResponses)
+          .build()
+    );
+  }
+
+  @Override
   public ResponseEntity<InputStreamResource> exportUserReport(Authentication authentication) throws IOException{
     User user = getAuthenticatedUser(authentication);
 
@@ -291,9 +332,9 @@ public class UserService implements UserServiceInterface {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Content-Disposition", "attachment; filename=user_report.xlsx");
 
-      return ResponseEntity.ok()
-            .headers(headers)
-            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-            .body(new InputStreamResource(excelFile));
+    return ResponseEntity.ok()
+        .headers(headers)
+        .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+        .body(new InputStreamResource(excelFile));
     }
 }

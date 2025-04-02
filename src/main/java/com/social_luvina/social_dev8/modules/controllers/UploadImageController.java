@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,5 +42,11 @@ public class UploadImageController {
     @GetMapping(value = "/download")
     public ResponseEntity<?> getImage(@RequestParam("filename") String filename) {
         return imageService.downloadImage(filename);
+    }
+
+    @Operation(summary = "Delete Image", description = "Delete an image by filename")
+    @DeleteMapping(value = "/delete")
+    public ResponseEntity<?> deleteImageFile(@RequestParam("filename") String filename) {
+        return imageService.deleteImageFile(filename);
     }
 }

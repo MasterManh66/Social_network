@@ -19,6 +19,7 @@ public class UserResponse {
   private long id;
   private String firstName;
   private String lastName;
+  private String fullName;
   private String address;
   private String job;
   private Date dateOfBirth;

@@ -1,6 +1,7 @@
 package com.social_luvina.social_dev8.modules.services.interfaces;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.UserSearchRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.AuthRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordOtpRequest;
@@ -22,6 +24,8 @@ import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 
 public interface UserServiceInterface {
   
+  ResponseEntity<ApiResponse<UserResponse>> getUserById(Authentication authentication);
+  ResponseEntity<ApiResponse<List<UserResponse>>> searchUsers(Authentication authentication, UserSearchRequest request);
   ResponseEntity<ApiResponse<?>> authenticate(LoginRequest request);
   ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(AuthRequest request) ;
   ResponseEntity<ApiResponse<Void>> registerUser(RegisterRequest request);
