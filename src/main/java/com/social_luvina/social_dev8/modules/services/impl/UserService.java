@@ -70,37 +70,24 @@ public class UserService implements UserServiceInterface {
   @Override
   public ResponseEntity<ApiResponse<?>> authenticate(LoginRequest request){
 
-    User user = userRepository.findByEmail(request.getEmail())
-          .orElseThrow(() -> new CustomException("Email không chính xác!", HttpStatus.CONFLICT));
+    User user = userRepository.findByEmail(request.getEmail().toLowerCase().trim())
+          .orElseThrow(() -> new CustomException("Email không chính xác!", HttpStatus.NOT_FOUND));
 
     if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-      throw new CustomException("Password không chính xác!", HttpStatus.CONFLICT);
+      throw new CustomException("Password không chính xác!", HttpStatus.NOT_FOUND);
     }
 
-    if (!user.isActive()) {
-        otpRepository.deleteAllOtpsByUser(user);
-        String otp = GetOtp.generateOtp(6);
-        Otp otpCode = Otp.builder().user(user).otpCode(otp).createdAt(LocalDateTime.now()).expiresAt(LocalDateTime.now().plusMinutes(5)).isUsed(false).build();
-        otpRepository.save(otpCode);
-
-        UserDTO userDto = new UserDTO(user.getId(),user.getEmail());
-
-        return ResponseEntity.ok(
-            ApiResponse.<LoginResponse>builder()
-                  .status(HttpStatus.OK.value())
-                  .message("Vui lòng nhập OTP để kích hoạt tài khoản.")
-                  .data(new LoginResponse(otp, userDto))
-                  .build()
-        );
-    }
-    String token = jwtService.generateToken(user.getId(), user.getEmail());
+    otpRepository.deleteAllOtpsByUser(user);
+    String otp = GetOtp.generateOtp(6);
+    Otp otpCode = Otp.builder().user(user).otpCode(otp).createdAt(LocalDateTime.now()).expiresAt(LocalDateTime.now().plusMinutes(5)).isUsed(false).build();
+    otpRepository.save(otpCode);
 
     return ResponseEntity.ok(
-        ApiResponse.<AuthResponse>builder()
-              .status(HttpStatus.OK.value())
-              .message("Đăng nhập thành công!")
-              .data(new AuthResponse(token, new UserDTO(user.getId(), user.getEmail())))
-              .build()
+        ApiResponse.<LoginResponse>builder()
+                  .status(HttpStatus.OK.value())
+                  .message("Vui lòng nhập OTP để xác thực tài khoản.")
+                  .data(new LoginResponse(otp))
+                  .build()
     );
   } 
 
@@ -114,25 +101,29 @@ public class UserService implements UserServiceInterface {
     }
 
     if (!otpRecord.getOtpCode().equals(request.getOtp())) {
-      throw new CustomException("OTP không chính xác!", HttpStatus.CONFLICT);
+      throw new CustomException("OTP không chính xác!", HttpStatus.BAD_REQUEST);
     }
 
     otpRecord.setUsed(true);
     otpRepository.save(otpRecord);
 
     User user = otpRecord.getUser();
-    user.setActive(true);
-    userRepository.save(user);
+    if (!user.isActive()) {
+      user.setActive(true);
+      userRepository.save(user);
+      throw new CustomException("Tài khoản đã được kích hoạt !", HttpStatus.BAD_REQUEST);
+    }
 
     otpRepository.deleteAllOtpsByUser(user);
 
     String token = jwtService.generateToken(user.getId(), user.getEmail());
+    UserDTO userDto = new UserDTO(user.getId(),user.getEmail());
 
     return ResponseEntity.ok(
         ApiResponse.<AuthResponse>builder()
               .status(HttpStatus.OK.value())
               .message("Xác thực OTP thành công!")
-              .data(new AuthResponse(token, new UserDTO(user.getId(), user.getEmail())))
+              .data(new AuthResponse(token, userDto))
               .build()
     );
   }

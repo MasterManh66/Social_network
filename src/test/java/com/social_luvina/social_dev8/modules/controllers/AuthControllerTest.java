@@ -45,9 +45,9 @@ public class AuthControllerTest {
 
   @Test
   void testLogin_Success_ReturnsLoginResponse() throws Exception {
-    UserDTO userDto = new UserDTO(1L, "manhtran@gmail.com"); 
+    // UserDTO userDto = new UserDTO(1L, "manhtran@gmail.com"); 
     LoginRequest request = new LoginRequest("user@gmail.com", "123456");
-    LoginResponse loginResponse = new LoginResponse("643215", userDto);
+    LoginResponse loginResponse = new LoginResponse("643215");
 
     ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder().message("Vui lòng nhập OTP để kích hoạt tài khoản.").data(loginResponse).build();
 
