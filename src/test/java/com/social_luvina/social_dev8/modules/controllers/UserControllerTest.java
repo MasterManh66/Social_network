@@ -27,10 +27,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordOtpRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordOtpResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 import com.social_luvina.social_dev8.modules.models.enums.GenderEnum;
@@ -76,15 +78,31 @@ public class UserControllerTest {
 
   @Test
   void testForgetPassword_Success() throws Exception {
-    String token = "mocked_jwt_token";
     ForgetPasswordRequest request = ForgetPasswordRequest.builder().email("user@gmail.com").build();
-    ForgetPasswordResponse response = ForgetPasswordResponse.builder().resetLink("http://localhost:8080/social/auth/change_password?token=" + token).token("mocked_jwt_token").build();
+    ForgetPasswordOtpResponse response = ForgetPasswordOtpResponse.builder().otp("645213").build();
 
-    ApiResponse<ForgetPasswordResponse> apiResponse = ApiResponse.<ForgetPasswordResponse>builder().message("Password reset link generated successfully").data(response).build();
+    ApiResponse<ForgetPasswordOtpResponse> apiResponse = ApiResponse.<ForgetPasswordOtpResponse>builder().message("Verify OTP for reset Password").data(response).build();
 
     when(userService.forgetPassword(any())).thenReturn(ResponseEntity.ok(apiResponse));
 
     mockMvc.perform(post("/social/auth/forgetpassword")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Verify OTP for reset Password"));
+  }
+
+  @Test
+  void testVerifyForgetPassword_Success() throws Exception {
+    String token = "mocked_jwt_token";
+    ForgetPasswordOtpRequest request = ForgetPasswordOtpRequest.builder().otp("645213").build();
+    ForgetPasswordResponse response = ForgetPasswordResponse.builder().resetLink("http://localhost:8080/social/auth/change_password?token=" + token).token("mocked_jwt_token").build();
+
+    ApiResponse<ForgetPasswordResponse> apiResponse = ApiResponse.<ForgetPasswordResponse>builder().message("Password reset link generated successfully").data(response).build();
+
+    when(userService.verifyForgetPassword(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(post("/social/auth/verifyForgetpassword")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())

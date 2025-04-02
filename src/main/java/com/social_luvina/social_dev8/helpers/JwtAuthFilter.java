@@ -44,7 +44,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     String path = request.getRequestURI();
     return path.startsWith("/social/auth/login") || path.startsWith("/social/auth/register")
     || path.startsWith("/social/auth/forgetpassword")  || path.startsWith("/swagger-resources") 
-    || path.startsWith("/swagger-ui/") || path.startsWith("/v3/api-docs") 
+    || path.startsWith("/swagger-ui/") || path.startsWith("/v3/api-docs") || path.startsWith("/social/auth/verifyForgetpassword") 
     || path.startsWith("/webjars/") || path.startsWith("/social/auth/verify");
   }
 

@@ -2,12 +2,14 @@ package com.social_luvina.social_dev8.modules.services.impl;
 import com.social_luvina.social_dev8.modules.exception.CustomException;
 import com.social_luvina.social_dev8.modules.models.dto.request.AuthRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordOtpRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.LoginRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.AuthResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordOtpResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserDTO;
@@ -60,7 +62,6 @@ public class UserService implements UserServiceInterface {
   private final CommentRepository commentRepository;
   private final LikeRepository likeRepository;
   private final OtpRepository otpRepository;
-  // private final ImageService imageService;
 
   private User getAuthenticatedUser(Authentication authentication) {
     return userRepository.findByEmail(authentication.getName())
@@ -139,7 +140,7 @@ public class UserService implements UserServiceInterface {
     }
 
     Role userRole = roleRepository.findByRoleName("User")
-            .orElseThrow(() -> new CustomException("Role USER không tồn tại!", HttpStatus.INTERNAL_SERVER_ERROR));
+            .orElseThrow(() -> new CustomException("Role USER không tồn tại!", HttpStatus.NOT_FOUND));
      
     User newUser = User.builder()
       .email(request.getEmail().toLowerCase().trim())
@@ -158,20 +159,53 @@ public class UserService implements UserServiceInterface {
   }
 
   @Override
-  public ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(ForgetPasswordRequest request) { 
-      User user = userRepository.findByEmail(request.getEmail())
+  public ResponseEntity<ApiResponse<ForgetPasswordOtpResponse>> forgetPassword(ForgetPasswordRequest request) { 
+      User user = userRepository.findByEmail(request.getEmail().toLowerCase().trim())
               .orElseThrow(() -> new CustomException("Email không tồn tại!", HttpStatus.NOT_FOUND));
 
-      String token = jwtService.generateToken(user.getId(), user.getEmail()); 
-      String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
+      otpRepository.deleteAllOtpsByUser(user);
+      String otp = GetOtp.generateOtp(6);
+      Otp otpCode = Otp.builder().user(user).otpCode(otp).createdAt(LocalDateTime.now()).expiresAt(LocalDateTime.now().plusMinutes(5)).isUsed(false).build();
+      otpRepository.save(otpCode);
 
       return ResponseEntity.ok(
-          ApiResponse.<ForgetPasswordResponse>builder()
+          ApiResponse.<ForgetPasswordOtpResponse>builder()
             .status(HttpStatus.OK.value())
-            .message("Quên mật khẩu Thành công! Mở link dưới và thay đổi mật khẩu.")
-            .data(new ForgetPasswordResponse(resetLink,token))
+            .message("Quên mật khẩu Thành công! Vui lòng xác thực OTP.")
+            .data(new ForgetPasswordOtpResponse(otp))
             .build()
       );
+  }
+
+  @Override
+  public ResponseEntity<ApiResponse<ForgetPasswordResponse>> verifyForgetPassword(ForgetPasswordOtpRequest request) {
+    Otp otpRecord = otpRepository.findByOtpCodeAndIsUsedFalse(request.getOtp())
+        .orElseThrow(() -> new CustomException("OTP không hợp lệ hoặc đã sử dụng!", HttpStatus.BAD_REQUEST));
+
+    if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
+      throw new CustomException("OTP đã hết hạn!", HttpStatus.NOT_FOUND);
+    }
+
+    if (!otpRecord.getOtpCode().equals(request.getOtp())) {
+      throw new CustomException("OTP không chính xác!", HttpStatus.BAD_REQUEST);
+    }
+
+    otpRecord.setUsed(true);
+    otpRepository.save(otpRecord);
+
+    User user = otpRecord.getUser();
+    otpRepository.deleteAllOtpsByUser(user);
+
+    String token = jwtService.generateToken(user.getId(), user.getEmail()); 
+    String resetLink = "http://localhost:8080/social/auth/change_password?token=" + token;
+
+    return ResponseEntity.ok(
+        ApiResponse.<ForgetPasswordResponse>builder()
+            .status(HttpStatus.OK.value())
+            .message("Xác thực OTP thành công! Mở link dưới và thay đổi mật khẩu.")
+            .data(new ForgetPasswordResponse(resetLink,token))
+            .build()
+    );
   }
 
   @Override
@@ -193,8 +227,8 @@ public class UserService implements UserServiceInterface {
   @Override
   public ResponseEntity<ApiResponse<UserResponse>> updateProfile(Authentication authentication, UserRequest request){ 
       User user = getAuthenticatedUser(authentication);
-
       boolean isUpdated = false;
+
       if (request.getFirstName() != null && !request.getFirstName().equals(user.getFirstName())) {
         user.setFirstName(request.getFirstName());
         isUpdated = true;
@@ -229,7 +263,7 @@ public class UserService implements UserServiceInterface {
       
       return ResponseEntity.ok(
           ApiResponse.<UserResponse>builder()
-          .status(HttpStatus.OK.value())
+          .status(HttpStatus.CREATED.value())
           .message("Cập nhật thông tin thành công!")
           .data(new UserResponse(user))
           .build()

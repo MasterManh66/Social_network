@@ -28,6 +28,7 @@ public class SecurityConfig {
                   "/social/auth/register",
                   "/social/auth/verify",
                   "/social/auth/forgetpassword",
+                  "/social/auth/verifyForgetpassword",
                   "/swagger-ui/**",
                   "/v3/api-docs/**",
                   "/swagger-ui.html",

@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.social_luvina.social_dev8.modules.models.dto.request.ChangePasswordRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordOtpRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordOtpResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserDTO;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
@@ -63,8 +65,13 @@ public class UserController {
   }  
 
   @PostMapping("/forgetpassword")
-  public ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(@Valid @RequestBody ForgetPasswordRequest request) {
+  public ResponseEntity<ApiResponse<ForgetPasswordOtpResponse>> forgetPassword(@Valid @RequestBody ForgetPasswordRequest request) {
     return userService.forgetPassword(request);
+  }
+
+  @PostMapping("/verifyForgetpassword")
+  public ResponseEntity<ApiResponse<ForgetPasswordResponse>> verifyForgetPassword(@Valid @RequestBody ForgetPasswordOtpRequest request) {
+    return userService.verifyForgetPassword(request);
   }
 
   @PutMapping("/change_password")
@@ -72,8 +79,8 @@ public class UserController {
       return userService.changePassword(authentication, request);
   }
 
-  @PutMapping("/profile")
-  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(Authentication authentication, @Valid @RequestBody UserRequest request){ 
+  @PutMapping(value = "/profile")
+  public ResponseEntity<ApiResponse<UserResponse>> updateProfile(Authentication authentication, @Valid @RequestBody UserRequest request ) {
     return userService.updateProfile(authentication, request);
   }
 
