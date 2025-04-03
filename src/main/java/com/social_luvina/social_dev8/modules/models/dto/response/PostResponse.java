@@ -1,6 +1,7 @@
 package com.social_luvina.social_dev8.modules.models.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.social_luvina.social_dev8.modules.models.entities.Post;
 import com.social_luvina.social_dev8.modules.models.enums.PostStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,4 +24,28 @@ public class PostResponse {
   private LocalDateTime createdAt;
   private PostStatus postStatus;
   private List<String> images;
+
+  private Integer likeCount;
+  private Integer commentCount;
+
+  public PostResponse(Post post) {
+    this.id = post.getId();
+    this.userId = post.getUser().getId();
+    this.title = post.getTitle();
+    this.content = post.getContent();
+    this.createdAt = post.getCreatedAt();
+    this.postStatus = post.getPostStatus();
+    this.images = post.getImages();
+  }
+
+  public PostResponse(long id, long userId, String title, String content, LocalDateTime createdAt, List<String> images, Integer likeCount, Integer commentCount) {
+    this.id = id;
+    this.userId = userId;
+    this.title = title;
+    this.content = content;
+    this.createdAt = createdAt;
+    this.images = images;
+    this.likeCount = likeCount;
+    this.commentCount = commentCount;
+  }
 }

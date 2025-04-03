@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.social_luvina.social_dev8.modules.models.dto.request.PostRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.PostSearchRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.PostResponse;
 import com.social_luvina.social_dev8.modules.services.interfaces.PostServiceInterface;
@@ -50,9 +51,20 @@ public class PostController {
     return postService.deletePost(authentication,postId);
   }
 
+  @PostMapping("/searchPost")
+  public ResponseEntity<ApiResponse<List<PostResponse>>> searchPost(Authentication authentication, @Validated @RequestBody PostSearchRequest request) {
+      return postService.searchPost(authentication, request);
+  }
+  
   @Operation(summary = "Get Timeline", description = "Get recent posts from friends")
   @GetMapping("/timeline")
   public ResponseEntity<ApiResponse<List<PostResponse>>> getTimeline(Authentication authentication) {
     return postService.getTimeline(authentication);
   }
+
+  @GetMapping("/postUser")
+  public ResponseEntity<ApiResponse<List<PostResponse>>> getPostUser(Authentication authentication) {
+      return postService.getPostUser(authentication);
+  }
+  
 }
