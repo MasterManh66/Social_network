@@ -1,5 +1,7 @@
 package com.social_luvina.social_dev8.modules.services.interfaces;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
@@ -10,4 +12,5 @@ import com.social_luvina.social_dev8.modules.models.dto.response.LikeResponse;
 public interface LikeServiceInterface {
   ResponseEntity<ApiResponse<LikeResponse>> createLike(Authentication authentication, long postId, LikeRequest request);
   ResponseEntity<ApiResponse<Void>> unLike(Authentication authentication, long postId);
+  ResponseEntity<ApiResponse<List<LikeResponse>>> getListLike(Authentication authentication);
 }

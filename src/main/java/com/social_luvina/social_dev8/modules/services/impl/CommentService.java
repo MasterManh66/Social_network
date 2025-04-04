@@ -3,6 +3,9 @@ package com.social_luvina.social_dev8.modules.services.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,6 +18,7 @@ import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.CommentResponse;
 import com.social_luvina.social_dev8.modules.models.entities.Post;
 import com.social_luvina.social_dev8.modules.models.entities.User;
+import com.social_luvina.social_dev8.modules.models.enums.PostStatus;
 import com.social_luvina.social_dev8.modules.models.entities.Comment;
 import com.social_luvina.social_dev8.modules.repositories.CommentRepository;
 import com.social_luvina.social_dev8.modules.repositories.PostRepository;
@@ -55,6 +59,10 @@ public class CommentService implements CommentServiceInterface {
 
         User user = getAuthenticatedUser(authentication);
         Post post = getPost(postId);
+
+        if (post.getPostStatus() == PostStatus.PRIVATE && post.getUser().getId() != user.getId()) {
+            throw new CustomException("Bạn không có quyền bình luận vào bài viết này", HttpStatus.FORBIDDEN);
+        }
 
         List<String> imagePaths = request.getImages() != null ? imageService.saveImage(request.getImages()) : null;
 
@@ -159,5 +167,34 @@ public class CommentService implements CommentServiceInterface {
             .message("Delete comment completed")
             .build();
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<List<CommentResponse>>> getCommentById(Authentication authentication){
+        User user = getAuthenticatedUser(authentication);
+        if (user == null) {
+            throw new CustomException("User không tồn tại", HttpStatus.NOT_FOUND);
+        }
+        Page<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(user, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
+
+        List<CommentResponse> commentResponses = comments.getContent().stream().map(comment -> {
+            return new CommentResponse(
+                comment.getId(),
+                comment.getContent(),
+                comment.getCreatedAt(),
+                comment.getUpdatedAt(),
+                comment.getUser().getId(),
+                comment.getImages(),
+                comment.getPost().getId()
+            );
+        }).toList();
+
+        return ResponseEntity.ok(
+            ApiResponse.<List<CommentResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Lấy thành công danh sách các comment của bạn!")
+                .data(commentResponses)
+                .build()
+        );
     }
 }

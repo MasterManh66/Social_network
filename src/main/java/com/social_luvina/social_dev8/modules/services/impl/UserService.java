@@ -114,7 +114,7 @@ public class UserService implements UserServiceInterface {
     if (!user.isActive()) {
       user.setActive(true);
       userRepository.save(user);
-      throw new CustomException("Tài khoản đã được kích hoạt !", HttpStatus.BAD_REQUEST);
+      throw new CustomException("Tài khoản đã được kích hoạt !", HttpStatus.OK);
     }
 
     otpRepository.deleteAllOtpsByUser(user);

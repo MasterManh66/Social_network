@@ -31,7 +31,12 @@ public class FriendService implements FriendServiceInterface{
 
   private User getAuthenticatedUser(Authentication authentication) {
     return userRepository.findByEmail(authentication.getName())
-          .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
+          .orElseThrow(() -> new CustomException("Người dùng không tồn tại", HttpStatus.NOT_FOUND));
+  }
+
+  private User getFriendIdToDelete(long friendIdToDelete){
+    return userRepository.findById(friendIdToDelete)
+          .orElseThrow(() -> new CustomException("Bạn bè không tồn tại", HttpStatus.NOT_FOUND));
   }
 
   @Override
@@ -175,16 +180,15 @@ public class FriendService implements FriendServiceInterface{
     }
 
     @Override
-    public ResponseEntity<ApiResponse<Void>> deleteFriend(Authentication authentication, FriendRequest request) {
+    public ResponseEntity<ApiResponse<Void>> deleteFriend(Authentication authentication, long friendIdToDelete) {
         User user = getAuthenticatedUser(authentication);
-        User friend = userRepository.findById(request.getReceiverId())
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+        User friend = getFriendIdToDelete(friendIdToDelete);
 
         Optional<Friend> friendship = friendRepository.findByRequesterAndReceiver(user, friend);
         Optional<Friend> reverseFriendship = friendRepository.findByRequesterAndReceiver(friend, user);
 
         if (friendship.isEmpty() && reverseFriendship.isEmpty()) {
-            throw new CustomException("No friendship found", HttpStatus.NOT_FOUND);
+            throw new CustomException("Các bạn không phải bạn bè", HttpStatus.NOT_FOUND);
         }
 
         friendship.ifPresent(friendRepository::delete);
@@ -192,10 +196,9 @@ public class FriendService implements FriendServiceInterface{
 
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
-                        .status(HttpStatus.OK.value())
-                        .message("Friend deleted successfully!")
+                        .status(HttpStatus.NO_CONTENT.value())
+                        .message("Huỷ kết bạn thành công!")
                         .build()
         );
     }
-  
 }

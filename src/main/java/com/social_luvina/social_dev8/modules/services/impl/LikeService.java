@@ -1,7 +1,11 @@
 package com.social_luvina.social_dev8.modules.services.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,7 +53,7 @@ public class LikeService implements LikeServiceInterface{
     
     User auth = post.getUser();
     if (user.getId() != auth.getId() && post.getPostStatus().equals(PostStatus.PRIVATE)) {
-        throw new CustomException("You can not see the article this post!", HttpStatus.FORBIDDEN);
+        throw new CustomException("Bạn không có quyền thấy bài viết này!", HttpStatus.FORBIDDEN);
     }
 
     if (findExistingLike(user.getId(), postId) != null) {
@@ -103,5 +107,33 @@ public class LikeService implements LikeServiceInterface{
             .message("Un Like completed")
             .build();
     return ResponseEntity.ok(apiResponse);
+  }
+
+  @Override
+  public ResponseEntity<ApiResponse<List<LikeResponse>>> getListLike(Authentication authentication){
+    User user = getAuthenticatedUser(authentication);
+
+    if (user == null) {
+      throw new CustomException("User không tồn tại", HttpStatus.NOT_FOUND);
+    }
+
+    Page<Like> likes = likeRepository.findByUserOrderByCreatedAt(user, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
+    
+    List<LikeResponse> likResponses = likes.getContent().stream().map( like -> {
+      return new LikeResponse(
+        like.getId(),
+        like.getCreatedAt(),
+        like.getPost().getId(),
+        like.getUser().getId()
+      );
+    }).toList();
+
+    return ResponseEntity.ok(
+      ApiResponse.<List<LikeResponse>>builder()
+        .status(HttpStatus.OK.value())
+        .message("Lấy thành công các lượt thích của bạn!")
+        .data(likResponses)
+        .build()
+    );
   }
 }

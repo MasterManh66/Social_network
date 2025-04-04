@@ -15,5 +15,5 @@ public interface FriendServiceInterface {
   ResponseEntity<ApiResponse<FriendResponse>> sendFriendRequest(Authentication authentication, FriendRequest request);
   ResponseEntity<ApiResponse<FriendResponse>> acceptFriendRequest(Authentication authentication, FriendRequest request);
   ResponseEntity<ApiResponse<Void>> declineFriendRequest(Authentication authentication, FriendRequest request);
-  ResponseEntity<ApiResponse<Void>> deleteFriend(Authentication authentication, FriendRequest request);
+  ResponseEntity<ApiResponse<Void>> deleteFriend(Authentication authentication, long friendIdToDelete);
 }

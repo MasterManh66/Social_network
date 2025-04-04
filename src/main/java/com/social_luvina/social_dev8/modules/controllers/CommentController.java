@@ -1,5 +1,7 @@
 package com.social_luvina.social_dev8.modules.controllers;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -18,6 +20,7 @@ import com.social_luvina.social_dev8.modules.services.interfaces.CommentServiceI
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @AllArgsConstructor
 @RestController
@@ -42,4 +45,10 @@ public class CommentController {
     public ResponseEntity<ApiResponse<Void>> deleteComment(Authentication authentication, @PathVariable("commentId") long commentId){
         return commentService.deleteComment(authentication,commentId);
     }
+
+    @GetMapping("/listComment")
+    public ResponseEntity<ApiResponse<List<CommentResponse>>> getCommentById(Authentication authentication) {
+        return commentService.getCommentById(authentication);
+    }
+    
 }

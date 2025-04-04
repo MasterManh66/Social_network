@@ -1,10 +1,13 @@
 package com.social_luvina.social_dev8.modules.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,5 +39,10 @@ public class LikeController {
   @DeleteMapping("/delete/{postId}")
   public ResponseEntity<ApiResponse<Void>> deleteLike(Authentication authentication, @PathVariable("postId") long postId){
         return likeService.unLike(authentication,postId);
+  }
+
+  @GetMapping("/listLike")
+  public ResponseEntity<ApiResponse<List<LikeResponse>>> getListLike(Authentication authentication){
+      return likeService.getListLike(authentication);
   }
 }
