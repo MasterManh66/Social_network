@@ -46,6 +46,7 @@ public class CommentController {
         return commentService.deleteComment(authentication,commentId);
     }
 
+    @Operation(summary = "List Comment", description = "List Comment")
     @GetMapping("/listComment")
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getCommentById(Authentication authentication) {
         return commentService.getCommentById(authentication);

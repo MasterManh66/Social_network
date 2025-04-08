@@ -41,6 +41,7 @@ public class LikeController {
         return likeService.unLike(authentication,postId);
   }
 
+  @Operation(summary = "User's List Like", description = "User's List Like")
   @GetMapping("/listLike")
   public ResponseEntity<ApiResponse<List<LikeResponse>>> getListLike(Authentication authentication){
       return likeService.getListLike(authentication);

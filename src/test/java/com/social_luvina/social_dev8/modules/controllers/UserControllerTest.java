@@ -7,7 +7,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.text.SimpleDateFormat;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -31,6 +33,7 @@ import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordOt
 import com.social_luvina.social_dev8.modules.models.dto.request.ForgetPasswordRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.RegisterRequest;
 import com.social_luvina.social_dev8.modules.models.dto.request.UserRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.UserSearchRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordOtpResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordResponse;
@@ -153,6 +156,41 @@ public class UserControllerTest {
     mockMvc.perform(get("/social/auth/report")
           .header("Authorization", "Bearer mocked_jwt_token")
           .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk());
+  }
+
+  @Test 
+  void testInfoUser_Success() throws Exception {
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    Date utilDate  = sdf.parse("06/04/2002");
+    java.sql.Date dob = new java.sql.Date(utilDate .getTime());
+
+    UserResponse response = UserResponse.builder().id(1L).firstName("manh").lastName("tran").fullName("manh tran").address("Ha Noi")
+                  .job("DevOps").dateOfBirth(dob).gender(GenderEnum.MALE).avatar("manhtran.jpg").build();
+
+    ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder().data(response).build();
+    when(userService.getUserById(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(get("/social/auth/infoUser")
+          .header("Authorization", "Bearer mocked_jwt_token")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andDo(print())
+          .andExpect(status().isOk());
+  }
+
+  @Test
+  void testSearchUser_Success() throws Exception {
+    UserSearchRequest request = UserSearchRequest.builder().keyword("manh").build();
+    List<UserResponse> userResponses = new ArrayList<>();
+
+    ApiResponse<List<UserResponse>> apiResponse = ApiResponse.<List<UserResponse>>builder().data(userResponses).build();
+    when(userService.searchUsers(any(), any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(post("/social/auth/searchUser")
+          .header("Authorization", "Bearer mocked_jwt_token")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
           .andExpect(status().isOk());
   }
 }

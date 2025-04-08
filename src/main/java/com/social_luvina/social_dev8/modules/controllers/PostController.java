@@ -51,6 +51,7 @@ public class PostController {
     return postService.deletePost(authentication,postId);
   }
 
+  @Operation(summary = "Search Post", description = "Search Post")
   @PostMapping("/searchPost")
   public ResponseEntity<ApiResponse<List<PostResponse>>> searchPost(Authentication authentication, @Validated @RequestBody PostSearchRequest request) {
       return postService.searchPost(authentication, request);
@@ -62,6 +63,7 @@ public class PostController {
     return postService.getTimeline(authentication);
   }
 
+  @Operation(summary = "List of user posts", description = "List of user posts")
   @GetMapping("/postUser")
   public ResponseEntity<ApiResponse<List<PostResponse>>> getPostUser(Authentication authentication) {
       return postService.getPostUser(authentication);

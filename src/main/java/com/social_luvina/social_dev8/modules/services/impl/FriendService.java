@@ -157,7 +157,7 @@ public class FriendService implements FriendServiceInterface{
     }
 
     @Override
-    public ResponseEntity<ApiResponse<Void>> declineFriendRequest(Authentication authentication, long friendIdToDecline) {
+    public ResponseEntity<ApiResponse<Void>> declineFriend(Authentication authentication, long friendIdToDecline) {
         User user = getAuthenticatedUser(authentication);
         User sender = userRepository.findById(friendIdToDecline)
                 .orElseThrow(() -> new CustomException("Người dùng không tồn tại", HttpStatus.NOT_FOUND));

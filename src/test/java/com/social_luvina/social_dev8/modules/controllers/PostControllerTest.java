@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social_luvina.social_dev8.modules.models.dto.request.PostRequest;
+import com.social_luvina.social_dev8.modules.models.dto.request.PostSearchRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.PostResponse;
 import com.social_luvina.social_dev8.modules.models.enums.PostStatus;
@@ -131,5 +132,74 @@ public class PostControllerTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message").value("Get Timeline Successfully"));
+  }
+
+  @Test
+  void testGetPostById_Success() throws Exception{
+    List<PostResponse> response = Arrays.asList(
+      PostResponse.builder()
+          .userId(1L)
+          .createdAt(LocalDateTime.of(2024, 3, 25, 14, 30, 0))
+          .title("learn test")
+          .content("write test for controller")
+          .postStatus(PostStatus.PUBLIC)
+          .images(Arrays.asList("image1.jpg", "image2.jpg"))
+          .build(),
+
+      PostResponse.builder()
+          .userId(2L)
+          .createdAt(LocalDateTime.of(2024, 3, 26, 10, 15, 0))
+          .title("another post")
+          .content("another test case")
+          .postStatus(PostStatus.PRIVATE)
+          .images(Arrays.asList("image3.jpg"))
+          .build()
+    );
+
+    ApiResponse<List<PostResponse>> apiResponse = ApiResponse.<List<PostResponse>>builder().data(response).message("Get post user Successfully").build();
+
+    when(postService.getPostUser(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(get("/api/posts/postUser")
+        .header("Authorization", "Bearer mocked_jwt_token")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Get post user Successfully"));
+  }
+
+  @Test
+  void testSearchPost_Success() throws Exception {
+    PostSearchRequest request = PostSearchRequest.builder().keyword("test").build();
+    List<PostResponse> response = Arrays.asList(
+      PostResponse.builder()
+          .userId(1L)
+          .createdAt(LocalDateTime.of(2024, 3, 25, 14, 30, 0))
+          .title("learn test")
+          .content("write test for controller")
+          .postStatus(PostStatus.PUBLIC)
+          .images(Arrays.asList("image1.jpg", "image2.jpg"))
+          .build(),
+
+      PostResponse.builder()
+          .userId(2L)
+          .createdAt(LocalDateTime.of(2024, 3, 26, 10, 15, 0))
+          .title("another post")
+          .content("another test case")
+          .postStatus(PostStatus.PRIVATE)
+          .images(Arrays.asList("image3.jpg"))
+          .build()
+    );
+
+    ApiResponse<List<PostResponse>> apiResponse = ApiResponse.<List<PostResponse>>builder().data(response).message("Search post successfully").build();
+    when(postService.searchPost(any(), any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(post("/api/posts/searchPost")
+          .header("Authorization", "Bearer mocked_jwt_token")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.message").value("Search post successfully"));
   }
 }

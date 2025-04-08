@@ -1,12 +1,17 @@
 package com.social_luvina.social_dev8.modules.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social_luvina.social_dev8.modules.models.dto.request.FriendRequest;
 import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.FriendResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 import com.social_luvina.social_dev8.modules.models.enums.FriendStatus;
 import com.social_luvina.social_dev8.modules.services.interfaces.FriendServiceInterface;
 
@@ -88,32 +94,68 @@ public class FriendControllerTest {
 
   @Test
   void testDeclineFriend_Success() throws Exception{
-    FriendRequest request = FriendRequest.builder().receiverId(3).build();
+    ApiResponse<Void> apiResponse = ApiResponse.<Void>builder().message("Decline Friend successfully").build();
 
-    ApiResponse<Void> apiResponse = ApiResponse.<Void>builder().message("Send successfully").build();
+    when(friendService.declineFriend(any(), anyLong())).thenReturn(ResponseEntity.ok(apiResponse));
 
-    when(friendService.declineFriendRequest(any(), any())).thenReturn(ResponseEntity.ok(apiResponse));
-
-    mockMvc.perform(post("/api/friend/decline")
+    mockMvc.perform(delete("/api/friend/decline/{friendIdToDecline}", 3)
         .header("Authorization", "Bearer mocked_jwt_token")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(request)))
+        .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk());
   }
 
   @Test
   void testDeleteFriend_Success() throws Exception{
-    FriendRequest request = FriendRequest.builder().receiverId(3L).build();
+    ApiResponse<Void> apiResponse = ApiResponse.<Void>builder().message("Delete Friend successfully").build();
 
-    ApiResponse<Void> apiResponse = ApiResponse.<Void>builder().message("Send successfully").build();
+    when(friendService.deleteFriend(any(), anyLong())).thenReturn(ResponseEntity.ok(apiResponse));
 
-    when(friendService.deleteFriend(any(), any())).thenReturn(ResponseEntity.ok(apiResponse));
-
-    mockMvc.perform(post("/api/friend/delete")
+    mockMvc.perform(delete("/api/friend/delete/{friendIdToDelete}", 2)
         .header("Authorization", "Bearer mocked_jwt_token")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(request)))
+        .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void testGetListFriend_Success() throws Exception{
+    List<UserResponse> responses = new ArrayList<>();
+    ApiResponse<List<UserResponse>> apiResponse = ApiResponse.<List<UserResponse>>builder().data(responses).message("Get List Friend successfully").build();
+
+    when(friendService.getListFriend(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(get("/api/friend/listFriend")
+        .header("Authorization", "Bearer mocked_jwt_token")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void testGetListSend_Success() throws Exception{
+    List<FriendResponse> responses = new ArrayList<>();
+    ApiResponse<List<FriendResponse>> apiResponse = ApiResponse.<List<FriendResponse>>builder().data(responses).message("Get List Send successfully").build();
+
+    when(friendService.getListSend(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(get("/api/friend/listSend")
+        .header("Authorization", "Bearer mocked_jwt_token")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void testGetListReceiver_Success() throws Exception{
+    List<FriendResponse> responses = new ArrayList<>();
+    ApiResponse<List<FriendResponse>> apiResponse = ApiResponse.<List<FriendResponse>>builder().data(responses).message("Get List Receiver successfully").build();
+
+    when(friendService.getListReceiver(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(get("/api/friend/listReceiver")
+        .header("Authorization", "Bearer mocked_jwt_token")
+        .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk());
   }

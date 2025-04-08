@@ -4,11 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,6 +74,33 @@ public class LikeControllerTest {
     when(likeService.unLike(any(), anyLong())).thenReturn(ResponseEntity.ok(apiResponse));
 
     mockMvc.perform(delete("/api/like/delete/{postId}",2)
+        .header("Authorization", "Bearer mocked_jwt_token")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void testListLike_Success() throws Exception {
+    List<LikeResponse> response = Arrays.asList (
+        LikeResponse.builder()
+                  .id(1L)
+                  .createdAt(LocalDateTime.of(2024, 3, 25, 14, 30, 0))
+                  .postId(2L)
+                  .userId(3L)
+                  .build(),
+        LikeResponse.builder()
+                  .id(2L)
+                  .createdAt(LocalDateTime.of(2024, 3, 26, 14, 30, 0))
+                  .postId(2L)
+                  .userId(4L)
+                  .build()
+    );
+    ApiResponse<List<LikeResponse>> apiResponse = ApiResponse.<List<LikeResponse>>builder().data(response).message("List Like successfully").build();
+
+    when(likeService.getListLike(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(get("/api/like/listLike")
         .header("Authorization", "Bearer mocked_jwt_token")
         .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())

@@ -71,7 +71,7 @@ public class UserService implements UserServiceInterface {
   }
 
   @Override
-  public ResponseEntity<ApiResponse<?>> authenticate(LoginRequest request){
+  public ResponseEntity<ApiResponse<LoginResponse>> authenticate(LoginRequest request){
 
     User user = userRepository.findByEmail(request.getEmail().toLowerCase().trim())
           .orElseThrow(() -> new CustomException("Email không chính xác!", HttpStatus.NOT_FOUND));

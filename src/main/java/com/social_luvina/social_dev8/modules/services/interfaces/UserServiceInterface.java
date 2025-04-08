@@ -19,14 +19,14 @@ import com.social_luvina.social_dev8.modules.models.dto.response.ApiResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.AuthResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordOtpResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.ForgetPasswordResponse;
+import com.social_luvina.social_dev8.modules.models.dto.response.LoginResponse;
 import com.social_luvina.social_dev8.modules.models.dto.response.UserResponse;
 
 
 public interface UserServiceInterface {
-  
   ResponseEntity<ApiResponse<UserResponse>> getUserById(Authentication authentication);
   ResponseEntity<ApiResponse<List<UserResponse>>> searchUsers(Authentication authentication, UserSearchRequest request);
-  ResponseEntity<ApiResponse<?>> authenticate(LoginRequest request);
+  ResponseEntity<ApiResponse<LoginResponse>> authenticate(LoginRequest request);
   ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(AuthRequest request) ;
   ResponseEntity<ApiResponse<Void>> registerUser(RegisterRequest request);
   ResponseEntity<ApiResponse<ForgetPasswordOtpResponse>> forgetPassword(ForgetPasswordRequest request);

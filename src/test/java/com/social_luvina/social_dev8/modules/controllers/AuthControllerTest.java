@@ -45,28 +45,10 @@ public class AuthControllerTest {
 
   @Test
   void testLogin_Success_ReturnsLoginResponse() throws Exception {
-    // UserDTO userDto = new UserDTO(1L, "manhtran@gmail.com"); 
     LoginRequest request = new LoginRequest("user@gmail.com", "123456");
     LoginResponse loginResponse = new LoginResponse("643215");
 
     ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder().message("Vui lòng nhập OTP để kích hoạt tài khoản.").data(loginResponse).build();
-
-    when(userService.authenticate(any())).thenReturn(ResponseEntity.ok(apiResponse));
-
-    mockMvc.perform(post("/social/auth/login")
-                .content(objectMapper.writeValueAsString(request))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-  }
-
-  @Test
-  void testLogin_Success_ReturnsAuthResponse() throws Exception {
-    UserDTO userDto = new UserDTO(1L, "manhtran@gmail.com"); 
-    LoginRequest request = new LoginRequest("user@gmail.com", "123456");
-    AuthResponse authResponse = new AuthResponse("mocked_jwt_token", userDto);
-
-    ApiResponse<AuthResponse> apiResponse = ApiResponse.<AuthResponse>builder().message("Đăng nhập thành công!").data(authResponse).build();
 
     when(userService.authenticate(any())).thenReturn(ResponseEntity.ok(apiResponse));
 

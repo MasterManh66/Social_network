@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,5 +103,38 @@ public class CommentControllerTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message").value("Delete Comment successfully"));
+  }
+
+  @Test
+  void testGetListComment_Success() throws Exception{
+    List<CommentResponse> response = Arrays.asList(
+        CommentResponse.builder()
+            .id(1L)
+            .content("I very like your post")
+            .createdAt(LocalDateTime.of(2024, 3, 25, 14, 30, 0))
+            .updatedAt(LocalDateTime.of(2024, 3, 26, 16, 15, 0))
+            .userId(1L)
+            .images(Arrays.asList("image1.jpg", "image2.jpg"))
+            .postId(2L)
+            .build(),
+        CommentResponse.builder()
+            .id(2L)
+            .content("You need more content")
+            .createdAt(LocalDateTime.of(2024, 3, 26, 16, 15, 0))
+            .updatedAt(LocalDateTime.of(2024, 3, 27, 18, 45, 0))
+            .userId(2L)
+            .images(Arrays.asList("image3.jpg"))
+            .postId(2L)
+            .build()
+    );
+
+    ApiResponse<List<CommentResponse>> apiResponse = ApiResponse.<List<CommentResponse>>builder().data(response).message("Get List Comment successfully").build();
+    when(commentService.getCommentById(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+    mockMvc.perform(get("/api/comment/listComment")
+        .header("Authorization", "Bearer mocked_jwt_token")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Get List Comment successfully"));
   }
 }
