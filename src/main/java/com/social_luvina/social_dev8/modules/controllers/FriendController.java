@@ -43,9 +43,9 @@ public class FriendController {
   }
 
   @Operation(summary = "Decline Friend Request", description = "Decline a pending friend request")
-  @PostMapping("/decline")
-  public ResponseEntity<ApiResponse<Void>> declineFriendRequest(Authentication authentication, @Validated @RequestBody FriendRequest request) {
-      return friendService.declineFriendRequest(authentication, request);
+  @DeleteMapping("/decline/{friendIdToDecline}")
+  public ResponseEntity<ApiResponse<Void>> declineFriendRequest(Authentication authentication, long friendIdToDecline) {
+      return friendService.declineFriendRequest(authentication, friendIdToDecline);
   }
 
   @Operation(summary = "Delete Friend", description = "Remove a friend from friend list")
@@ -57,5 +57,15 @@ public class FriendController {
   @GetMapping("/listFriend")
   public ResponseEntity<ApiResponse<List<UserResponse>>> getListFriend(Authentication authentication) {
         return friendService.getListFriend(authentication);
+  }
+
+  @GetMapping("/listSend")
+  public ResponseEntity<ApiResponse<List<FriendResponse>>> getListSend(Authentication authentication) {
+    return friendService.getListSend(authentication);
+  }
+
+  @GetMapping("/listReceiver")
+  public ResponseEntity<ApiResponse<List<FriendResponse>>> getListReceiver(Authentication authentication) {
+    return friendService.getListReceiver(authentication);
   }
 }

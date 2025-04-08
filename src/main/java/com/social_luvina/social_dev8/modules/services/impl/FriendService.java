@@ -26,54 +26,53 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class FriendService implements FriendServiceInterface{
-  private final UserRepository userRepository;
-  private final FriendRepository friendRepository;
+    private final UserRepository userRepository;
+    private final FriendRepository friendRepository;
 
-  private User getAuthenticatedUser(Authentication authentication) {
-    return userRepository.findByEmail(authentication.getName())
+    private User getAuthenticatedUser(Authentication authentication) {
+        return userRepository.findByEmail(authentication.getName())
           .orElseThrow(() -> new CustomException("Người dùng không tồn tại", HttpStatus.NOT_FOUND));
-  }
+    }
 
-  private User getFriendIdToDelete(long friendIdToDelete){
-    return userRepository.findById(friendIdToDelete)
+    private User getFriendIdToDelete(long friendIdToDelete){
+        return userRepository.findById(friendIdToDelete)
           .orElseThrow(() -> new CustomException("Bạn bè không tồn tại", HttpStatus.NOT_FOUND));
-  }
+    }
 
-  @Override
-  public ResponseEntity<ApiResponse<List<UserResponse>>> getListFriend(Authentication authentication){
-    User user = getAuthenticatedUser(authentication);
+    @Override
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getListFriend(Authentication authentication){
+        User user = getAuthenticatedUser(authentication);
 
-    List<User> friends = friendRepository.findAllFriends(user);
+        List<User> friends = friendRepository.findAllFriends(user);
 
-    List<UserResponse> friendResponses = friends.stream()
-        .map(UserResponse::new)
-        .toList();
+        List<UserResponse> friendResponses = friends.stream()
+            .map(UserResponse::new)
+            .toList();
 
-    return ResponseEntity.ok(ApiResponse.<List<UserResponse>>builder()
-        .status(HttpStatus.OK.value())
-        .message(friendResponses.isEmpty() ? "Không có bạn bè nào!" : "Lấy danh sách bạn bè thành công!")
-        .data(friendResponses)
-        .build());
-  }
+        return ResponseEntity.ok(ApiResponse.<List<UserResponse>>builder()
+            .status(HttpStatus.OK.value())
+            .message(friendResponses.isEmpty() ? "Bạn chưa có bạn bè nào!" : "Lấy danh sách bạn bè của bạn thành công!")
+            .data(friendResponses)
+            .build());
+    }
 
-
-  @Override
-  public ResponseEntity<ApiResponse<FriendResponse>> sendFriendRequest(Authentication authentication, FriendRequest request) {
+    @Override
+    public ResponseEntity<ApiResponse<FriendResponse>> sendFriendRequest(Authentication authentication, FriendRequest request) {
       User user = getAuthenticatedUser(authentication);
       User receiver = userRepository.findById(request.getReceiverId())
-            .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new CustomException("Người dùng không tồn tại", HttpStatus.NOT_FOUND));
   
       if (user.equals(receiver)) {
-          throw new CustomException("Cannot send friend request to yourself", HttpStatus.BAD_REQUEST);
+          throw new CustomException("Bạn không thể gửi lời mời cho chính mình", HttpStatus.CONFLICT);
       }
   
       // Kiểm tra xem đã có lời mời từ user chưa
       Optional<Friend> existingFriend = friendRepository.findByRequesterAndReceiver(user, receiver);
       if (existingFriend.isPresent()) {
           if (existingFriend.get().getFriendStatus() == FriendStatus.ACCEPTED) {
-              throw new CustomException("Already friends", HttpStatus.BAD_REQUEST);
+              throw new CustomException("Đã là bạn bè", HttpStatus.BAD_REQUEST);
           }
-          throw new CustomException("Friend request already sent", HttpStatus.BAD_REQUEST);
+          throw new CustomException("Yêu cầu kết bạn đã được gửi", HttpStatus.OK);
       }
   
       // Kiểm tra nếu receiver đã gửi lời mời trước → Chấp nhận lời mời
@@ -151,31 +150,31 @@ public class FriendService implements FriendServiceInterface{
         return ResponseEntity.ok(
                 ApiResponse.<FriendResponse>builder()
                         .status(HttpStatus.OK.value())
-                        .message("Friend request accepted successfully!")
+                        .message("Bạn đã chấp nhận yêu cầu kết bạn từ " + sender.getFirstName() + " " + sender.getLastName())
                         .data(friendResponse)
                         .build()
         );
     }
 
     @Override
-    public ResponseEntity<ApiResponse<Void>> declineFriendRequest(Authentication authentication, FriendRequest request) {
+    public ResponseEntity<ApiResponse<Void>> declineFriendRequest(Authentication authentication, long friendIdToDecline) {
         User user = getAuthenticatedUser(authentication);
-        User sender = userRepository.findById(request.getReceiverId())
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+        User sender = userRepository.findById(friendIdToDecline)
+                .orElseThrow(() -> new CustomException("Người dùng không tồn tại", HttpStatus.NOT_FOUND));
 
         Optional<Friend> friendRequest = friendRepository.findByRequesterAndReceiver(sender, user);
 
         if (friendRequest.isEmpty() || friendRequest.get().getFriendStatus() != FriendStatus.PENDING) {
-            throw new CustomException("No pending friend request found", HttpStatus.NOT_FOUND);
+            throw new CustomException("Không tìm thấy yêu cầu kết bạn đang chờ xử lý", HttpStatus.NOT_FOUND);
         }
 
         friendRepository.delete(friendRequest.get());
 
         return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .status(HttpStatus.OK.value())
-                        .message("Friend request declined successfully!")
-                        .build()
+            ApiResponse.<Void>builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .message("Bạn đã từ chối yêu cầu kết bạn nhận được từ " + sender.getFirstName() + " " + sender.getLastName())
+                .build()
         );
     }
 
@@ -197,8 +196,57 @@ public class FriendService implements FriendServiceInterface{
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .status(HttpStatus.NO_CONTENT.value())
-                        .message("Huỷ kết bạn thành công!")
+                        .message("Huỷ kết bạn thành công với " + friend.getFirstName() + " " + friend.getLastName())
                         .build()
+        );
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<List<FriendResponse>>> getListSend(Authentication authentication){
+        User user = getAuthenticatedUser(authentication);
+        List<Friend> friends = friendRepository.findAllPendingFriendRequests(user);
+
+        List<FriendResponse> friendResponses = friends.stream().map(friend -> {
+            User friendUser = friend.getReceiver().equals(user) ? friend.getRequester() : friend.getReceiver();
+            return FriendResponse.builder()
+                .userId(friendUser.getId())
+                .fullName(friendUser.getFirstName() + " " + friendUser.getLastName())
+                .avatar(friendUser.getAvatar())
+                .status(friend.getFriendStatus())
+                .createdAt(friend.getCreatedAt())
+                .build();
+            }).toList();
+
+        return ResponseEntity.ok(
+            ApiResponse.<List<FriendResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message(friendResponses.isEmpty() ? "Bạn chưa gửi lời mời kết bạn nào!" : "Lấy thành công các lời mời kết bạn của bạn đã gửi đi!")
+                .data(friendResponses)
+                .build(
+        ));   
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<List<FriendResponse>>> getListReceiver(Authentication authentication) {
+        User user = getAuthenticatedUser(authentication);
+        List<Friend> friends = friendRepository.findAllPendingFriendReceiver(user);
+
+        List<FriendResponse> friendResponses = friends.stream().map(friend -> {
+            User friendUser = friend.getReceiver().equals(user) ? friend.getRequester() : friend.getReceiver();
+            return FriendResponse.builder()
+                .userId(friendUser.getId())
+                .fullName(friendUser.getFirstName() + " " + friendUser.getLastName())
+                .avatar(friendUser.getAvatar())
+                .status(friend.getFriendStatus())
+                .createdAt(friend.getCreatedAt())
+                .build();
+            }).toList();
+        return ResponseEntity.ok(
+            ApiResponse.<List<FriendResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message(friendResponses.isEmpty() ? "Bạn chưa nhận được lời mời kết bạn nào!" : "Lấy thành công các lời mời kết bạn của bạn đã nhận!")
+                .data(friendResponses)
+                .build()
         );
     }
 }

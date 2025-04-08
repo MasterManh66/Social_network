@@ -17,6 +17,12 @@ public interface FriendRepository extends JpaRepository<Friend, Long>{
   @Query("SELECT f.receiver FROM Friend f WHERE f.requester = :user AND f.friendStatus = 'ACCEPTED' " +"UNION " +
            "SELECT f.requester FROM Friend f WHERE f.receiver = :user AND f.friendStatus = 'ACCEPTED'")
   List<User> findAllFriends(@Param("user") User user);
+
+  @Query("SELECT f FROM Friend f WHERE f.friendStatus = 'PENDING' AND f.requester = :user ORDER BY f.createdAt DESC")
+  List<Friend> findAllPendingFriendRequests(@Param("user") User user);
+
+  @Query("SELECT f FROM Friend f WHERE f.friendStatus = 'PENDING' AND f.receiver = :user ORDER BY f.createdAt DESC")
+  List<Friend> findAllPendingFriendReceiver(@Param("user") User user);
   
   Optional<Friend> findByRequesterAndReceiver(User requester, User receiver);
 
